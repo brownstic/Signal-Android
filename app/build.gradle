@@ -7,6 +7,8 @@ apply from: 'translations.gradle'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'app.cash.exhaustive'
 apply plugin: 'kotlin-parcelize'
+//Added
+apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
 
 repositories {
     maven {
@@ -62,8 +64,8 @@ ktlint {
     version = "0.43.2"
 }
 
-def canonicalVersionCode = 987
-def canonicalVersionName = "5.29.3"
+def canonicalVersionCode = 1
+def canonicalVersionName = "1.0"
 
 def postFixSize = 100
 def abiPostFix = ['universal'   : 0,
@@ -120,6 +122,9 @@ android {
     }
 
     defaultConfig {
+        //Added
+        applicationId = 'com.gbsignal'
+
         versionCode canonicalVersionCode * postFixSize
         versionName canonicalVersionName
 
@@ -435,10 +440,11 @@ dependencies {
     implementation libs.androidx.sharetarget
 
     implementation (libs.firebase.messaging) {
-        exclude group: 'com.google.firebase', module: 'firebase-core'
-        exclude group: 'com.google.firebase', module: 'firebase-analytics'
         exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
     }
+
+    //Added
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
 
     implementation libs.google.play.services.maps
     implementation libs.google.play.services.auth

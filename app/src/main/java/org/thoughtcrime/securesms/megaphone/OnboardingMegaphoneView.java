@@ -263,9 +263,8 @@ public class OnboardingMegaphoneView extends FrameLayout {
 
     @Override
     void onActionClicked(@NonNull MegaphoneActionController controller) {
-      Intent intent = SmsUtil.getSmsRoleIntent(controller.getMegaphoneActivity());
-      controller.onMegaphoneNavigationRequested(intent, ConversationListFragment.SMS_ROLE_REQUEST_CODE);
-      SignalStore.onboarding().setShowSms(false);
+      controller.onMegaphoneNavigationRequested(ChatWallpaperActivity.createIntent(controller.getMegaphoneActivity()));
+      SignalStore.onboarding().setShowAppearance(false);
     }
 
     @Override

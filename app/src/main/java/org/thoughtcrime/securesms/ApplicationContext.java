@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
 import com.google.android.gms.security.ProviderInstaller;
+import com.onesignal.OneSignal;
 
 import org.conscrypt.Conscrypt;
 import org.greenrobot.eventbus.EventBus;
@@ -115,6 +116,9 @@ public class ApplicationContext extends MultiDexApplication implements AppForegr
 
   private PersistentLogger persistentLogger;
 
+  //Added
+  private static final String ONESIGNAL_APP_ID = "4db6e45f-f437-4493-9fa0-3507fd895ef6";
+
   public static ApplicationContext getInstance(Context context) {
     return (ApplicationContext)context.getApplicationContext();
   }
@@ -132,6 +136,10 @@ public class ApplicationContext extends MultiDexApplication implements AppForegr
     }
 
     super.onCreate();
+
+    // OneSignal Initialization
+    OneSignal.initWithContext(this);
+    OneSignal.setAppId(ONESIGNAL_APP_ID);
 
     AppStartup.getInstance().addBlocking("security-provider", this::initializeSecurityProvider)
                             .addBlocking("sqlcipher-init", () -> {
