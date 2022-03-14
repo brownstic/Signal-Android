@@ -15,7 +15,7 @@ import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.storage.StorageSyncHelper.IdDifferenceResult;
 import org.thoughtcrime.securesms.util.FeatureFlags;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.push.ACI;
+import org.whispersystems.signalservice.api.push.ServiceId;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 import org.whispersystems.signalservice.api.storage.SignalAccountRecord;
 import org.whispersystems.signalservice.api.storage.SignalContactRecord;
@@ -27,10 +27,8 @@ import org.whispersystems.signalservice.api.storage.StorageId;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -49,15 +47,15 @@ import static org.thoughtcrime.securesms.testutil.TestHelpers.byteListOf;
 @PowerMockRunnerDelegate(JUnit4.class)
 public final class StorageSyncHelperTest {
 
-  private static final ACI ACI_A    = ACI.parseOrThrow("ebef429e-695e-4f51-bcc4-526a60ac68c7");
-  private static final ACI ACI_SELF = ACI.parseOrThrow("1b2a2ca5-fc9e-4656-8c9f-22cc349ed3af");
+  private static final ServiceId SID_A    = ServiceId.parseOrThrow("ebef429e-695e-4f51-bcc4-526a60ac68c7");
+  private static final ServiceId SID_SELF = ServiceId.parseOrThrow("1b2a2ca5-fc9e-4656-8c9f-22cc349ed3af");
 
   private static final String E164_A    = "+16108675309";
   private static final String E164_SELF = "+16105555555";
 
   private static final Recipient SELF = mock(Recipient.class);
   static {
-    when(SELF.getAci()).thenReturn(Optional.of(ACI_SELF));
+    when(SELF.getServiceId()).thenReturn(Optional.of(SID_SELF));
     when(SELF.getE164()).thenReturn(Optional.of(E164_SELF));
     when(SELF.resolve()).thenReturn(SELF);
   }
@@ -134,8 +132,8 @@ public final class StorageSyncHelperTest {
     byte[] profileKey     = new byte[32];
     byte[] profileKeyCopy = profileKey.clone();
 
-    SignalContactRecord a = contactBuilder(1, ACI_A, E164_A, "a").setProfileKey(profileKey).build();
-    SignalContactRecord b = contactBuilder(1, ACI_A, E164_A, "a").setProfileKey(profileKeyCopy).build();
+    SignalContactRecord a = contactBuilder(1, SID_A, E164_A, "a").setProfileKey(profileKey).build();
+    SignalContactRecord b = contactBuilder(1, SID_A, E164_A, "a").setProfileKey(profileKeyCopy).build();
 
     assertEquals(a, b);
     assertEquals(a.hashCode(), b.hashCode());
@@ -149,8 +147,8 @@ public final class StorageSyncHelperTest {
     byte[] profileKeyCopy = profileKey.clone();
     profileKeyCopy[0] = 1;
 
-    SignalContactRecord a = contactBuilder(1, ACI_A, E164_A, "a").setProfileKey(profileKey).build();
-    SignalContactRecord b = contactBuilder(1, ACI_A, E164_A, "a").setProfileKey(profileKeyCopy).build();
+    SignalContactRecord a = contactBuilder(1, SID_A, E164_A, "a").setProfileKey(profileKey).build();
+    SignalContactRecord b = contactBuilder(1, SID_A, E164_A, "a").setProfileKey(profileKeyCopy).build();
 
     assertNotEquals(a, b);
     assertNotEquals(a.hashCode(), b.hashCode());
@@ -173,11 +171,11 @@ public final class StorageSyncHelperTest {
   }
 
   private static SignalContactRecord.Builder contactBuilder(int key,
-                                                            ACI aci,
+                                                            ServiceId aci,
                                                             String e164,
                                                             String profileName)
   {
-    return new SignalContactRecord.Builder(byteArray(key), new SignalServiceAddress(aci, e164))
+    return new SignalContactRecord.Builder(byteArray(key), new SignalServiceAddress(aci, e164), null)
                                   .setGivenName(profileName);
   }
 

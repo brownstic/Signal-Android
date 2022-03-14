@@ -39,7 +39,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class CreateGroupActivity extends ContactSelectionActivity {
 
@@ -98,7 +100,7 @@ public class CreateGroupActivity extends ContactSelectionActivity {
   }
 
   @Override
-  public void onBeforeContactSelected(Optional<RecipientId> recipientId, String number, Consumer<Boolean> callback) {
+  public void onBeforeContactSelected(@NonNull Optional<RecipientId> recipientId, String number, @NonNull Consumer<Boolean> callback) {
     if (contactsFragment.hasQueryFilter()) {
       getContactFilterView().clear();
     }
@@ -109,7 +111,7 @@ public class CreateGroupActivity extends ContactSelectionActivity {
   }
 
   @Override
-  public void onContactDeselected(Optional<RecipientId> recipientId, String number) {
+  public void onContactDeselected(@NonNull Optional<RecipientId> recipientId, String number) {
     if (contactsFragment.hasQueryFilter()) {
       getContactFilterView().clear();
     }
@@ -164,17 +166,18 @@ public class CreateGroupActivity extends ContactSelectionActivity {
     SimpleProgressDialog.DismissibleDialog dismissibleDialog = SimpleProgressDialog.showDelayed(this);
 
     SimpleTask.run(getLifecycle(), () -> {
-      List<RecipientId> ids = Stream.of(contactsFragment.getSelectedContacts())
-                                    .map(selectedContact -> selectedContact.getOrCreateRecipientId(this))
-                                    .toList();
+      List<RecipientId> ids = contactsFragment.getSelectedContacts()
+                                              .stream()
+                                              .map(selectedContact -> selectedContact.getOrCreateRecipientId(this))
+                                              .collect(Collectors.toList());
 
       List<Recipient> resolved = Recipient.resolvedList(ids);
 
       stopwatch.split("resolve");
 
-      List<Recipient> registeredChecks = Stream.of(resolved)
-                                               .filter(r -> r.getRegistered() == RecipientDatabase.RegisteredState.UNKNOWN)
-                                               .toList();
+      Set<Recipient> registeredChecks = resolved.stream()
+                                                .filter(r -> r.getRegistered() == RecipientDatabase.RegisteredState.UNKNOWN)
+                                                .collect(Collectors.toSet());
 
       Log.i(TAG, "Need to do " + registeredChecks.size() + " registration checks.");
 
@@ -186,22 +189,31 @@ public class CreateGroupActivity extends ContactSelectionActivity {
         }
       }
 
+      if (registeredChecks.size() > 0) {
+        resolved = Recipient.resolvedList(ids);
+      }
+
       stopwatch.split("registered");
 
       List<Recipient> recipientsAndSelf = new ArrayList<>(resolved);
       recipientsAndSelf.add(Recipient.self().resolve());
 
+      boolean neededRefresh = false;
+
       if (!SignalStore.internalValues().gv2DoNotCreateGv2Groups()) {
         try {
-          GroupsV2CapabilityChecker.refreshCapabilitiesIfNecessary(recipientsAndSelf);
+          neededRefresh = GroupsV2CapabilityChecker.refreshCapabilitiesIfNecessary(recipientsAndSelf);
         } catch (IOException e) {
           Log.w(TAG, "Failed to refresh all recipient capabilities.", e);
         }
       }
 
+      if (neededRefresh) {
+        resolved = Recipient.resolvedList(ids);
+      }
+
       stopwatch.split("capabilities");
 
-      resolved = Recipient.resolvedList(ids);
 
       Pair<Boolean, List<RecipientId>> result;
 

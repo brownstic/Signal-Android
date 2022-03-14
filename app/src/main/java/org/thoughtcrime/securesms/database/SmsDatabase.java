@@ -39,11 +39,13 @@ import org.thoughtcrime.securesms.database.model.GroupCallUpdateDetailsUtil;
 import org.thoughtcrime.securesms.database.model.MessageId;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
+import org.thoughtcrime.securesms.database.model.StoryViewState;
 import org.thoughtcrime.securesms.database.model.databaseprotos.GroupCallUpdateDetails;
 import org.thoughtcrime.securesms.database.model.databaseprotos.ProfileChangeDetails;
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies;
 import org.thoughtcrime.securesms.groups.GroupMigrationMembershipChange;
 import org.thoughtcrime.securesms.jobs.TrimThreadJob;
+import org.thoughtcrime.securesms.keyvalue.SignalStore;
 import org.thoughtcrime.securesms.mms.IncomingMediaMessage;
 import org.thoughtcrime.securesms.mms.MmsException;
 import org.thoughtcrime.securesms.mms.OutgoingMediaMessage;
@@ -272,8 +274,8 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   private @NonNull SqlUtil.Query buildMeaningfulMessagesQuery(long threadId) {
-    String query = THREAD_ID + " = ? AND (NOT " + TYPE + " & ? AND " + TYPE + " != ? AND " + TYPE + " != ? AND " + TYPE + " & " + GROUP_V2_LEAVE_BITS + " != " + GROUP_V2_LEAVE_BITS + ")";
-    return SqlUtil.buildQuery(query, threadId, IGNORABLE_TYPESMASK_WHEN_COUNTING, Types.PROFILE_CHANGE_TYPE, Types.CHANGE_NUMBER_TYPE);
+    String query = THREAD_ID + " = ? AND (NOT " + TYPE + " & ? AND " + TYPE + " != ? AND " + TYPE + " != ? AND " + TYPE + " != ? AND " + TYPE + " & " + GROUP_V2_LEAVE_BITS + " != " + GROUP_V2_LEAVE_BITS + ")";
+    return SqlUtil.buildQuery(query, threadId, IGNORABLE_TYPESMASK_WHEN_COUNTING, Types.PROFILE_CHANGE_TYPE, Types.CHANGE_NUMBER_TYPE, Types.BOOST_REQUEST_TYPE);
   }
 
   @Override
@@ -392,6 +394,7 @@ public class SmsDatabase extends MessageDatabase {
 
       threadId = getThreadIdForMessage(id);
 
+      SignalDatabase.reactions().deleteReactions(new MessageId(id, false));
       SignalDatabase.threads().update(threadId, false);
       SignalDatabase.messageLog().deleteAllRelatedToMessage(id, false);
 
@@ -590,9 +593,10 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   private List<MarkedMessageInfo> setMessagesRead(String where, String[] arguments) {
-    SQLiteDatabase          database  = databaseHelper.getSignalWritableDatabase();
-    List<MarkedMessageInfo> results   = new LinkedList<>();
-    Cursor                  cursor    = null;
+    SQLiteDatabase          database         = databaseHelper.getSignalWritableDatabase();
+    List<MarkedMessageInfo> results          = new LinkedList<>();
+    Cursor                  cursor           = null;
+    RecipientId             releaseChannelId = SignalStore.releaseChannelValues().getReleaseChannelRecipientId();
 
     database.beginTransaction();
     try {
@@ -609,7 +613,9 @@ public class SmsDatabase extends MessageDatabase {
           SyncMessageId  syncMessageId  = new SyncMessageId(recipientId, dateSent);
           ExpirationInfo expirationInfo = new ExpirationInfo(messageId, expiresIn, expireStarted, false);
 
-          results.add(new MarkedMessageInfo(threadId, syncMessageId, new MessageId(messageId, false), expirationInfo));
+          if (!recipientId.equals(releaseChannelId)) {
+            results.add(new MarkedMessageInfo(threadId, syncMessageId, new MessageId(messageId, false), expirationInfo));
+          }
         }
       }
 
@@ -714,11 +720,11 @@ public class SmsDatabase extends MessageDatabase {
 
       if (!peerEraIdSameAsPrevious && !Util.isEmpty(peekGroupCallEraId)) {
         Recipient self     = Recipient.self();
-        boolean   markRead = peekJoinedUuids.contains(self.requireAci().uuid()) || self.getId().equals(sender);
+        boolean   markRead = peekJoinedUuids.contains(self.requireServiceId().uuid()) || self.getId().equals(sender);
 
         byte[] updateDetails = GroupCallUpdateDetails.newBuilder()
                                                      .setEraId(Util.emptyIfNull(peekGroupCallEraId))
-                                                     .setStartedCallUuid(Recipient.resolved(sender).requireAci().toString())
+                                                     .setStartedCallUuid(Recipient.resolved(sender).requireServiceId().toString())
                                                      .setStartedCallTimestamp(timestamp)
                                                      .addAllInCallUuids(Stream.of(peekJoinedUuids).map(UUID::toString).toList())
                                                      .setIsCallFull(isCallFull)
@@ -795,7 +801,7 @@ public class SmsDatabase extends MessageDatabase {
       if (!sameEraId && !Util.isEmpty(messageGroupCallEraId)) {
         byte[] updateDetails = GroupCallUpdateDetails.newBuilder()
                                                      .setEraId(Util.emptyIfNull(messageGroupCallEraId))
-                                                     .setStartedCallUuid(Recipient.resolved(sender).requireAci().toString())
+                                                     .setStartedCallUuid(Recipient.resolved(sender).requireServiceId().toString())
                                                      .setStartedCallTimestamp(timestamp)
                                                      .addAllInCallUuids(Collections.emptyList())
                                                      .setIsCallFull(false)
@@ -844,7 +850,7 @@ public class SmsDatabase extends MessageDatabase {
       }
 
       GroupCallUpdateDetails groupCallUpdateDetails = GroupCallUpdateDetailsUtil.parse(record.getBody());
-      boolean                containsSelf           = peekJoinedUuids.contains(Recipient.self().requireAci().uuid());
+      boolean                containsSelf           = peekJoinedUuids.contains(SignalStore.account().requireAci().uuid());
 
       sameEraId = groupCallUpdateDetails.getEraId().equals(peekGroupCallEraId) && !Util.isEmpty(peekGroupCallEraId);
 
@@ -1068,6 +1074,21 @@ public class SmsDatabase extends MessageDatabase {
                        SignalDatabase.threads().update(threadId, true);
                        notifyConversationListeners(threadId);
                      });
+  }
+
+  @Override
+  public void insertBoostRequestMessage(@NonNull RecipientId recipientId, long threadId) {
+    ContentValues values = new ContentValues();
+    values.put(RECIPIENT_ID, recipientId.serialize());
+    values.put(ADDRESS_DEVICE_ID, 1);
+    values.put(DATE_RECEIVED, System.currentTimeMillis());
+    values.put(DATE_SENT, System.currentTimeMillis());
+    values.put(READ, 1);
+    values.put(TYPE, Types.BOOST_REQUEST_TYPE);
+    values.put(THREAD_ID, threadId);
+    values.putNull(BODY);
+
+    getWritableDatabase().insert(TABLE_NAME, null, values);
   }
 
   @Override
@@ -1349,6 +1370,76 @@ public class SmsDatabase extends MessageDatabase {
   @Override
   public void ensureMigration() {
     databaseHelper.getSignalWritableDatabase();
+  }
+
+  @Override
+  public boolean isStory(long messageId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageDatabase.Reader getOutgoingStoriesTo(@NonNull RecipientId recipientId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageDatabase.Reader getAllOutgoingStories() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageDatabase.Reader getAllStories() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull List<RecipientId> getAllStoriesRecipientsList() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageDatabase.Reader getAllStoriesFor(@NonNull RecipientId recipientId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageId getStoryId(@NonNull RecipientId authorId, long sentTimestamp) throws NoSuchMessageException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getNumberOfStoryReplies(long parentStoryId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean hasSelfReplyInStory(long parentStoryId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull Cursor getStoryReplies(long parentStoryId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public long getUnreadStoryCount() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @Nullable Long getOldestStorySendTimestamp() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull StoryViewState getStoryViewState(@NonNull RecipientId recipientId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int deleteStoriesOlderThan(long timestamp) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

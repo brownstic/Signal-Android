@@ -49,17 +49,13 @@ import org.thoughtcrime.securesms.util.BitmapUtil;
 import org.thoughtcrime.securesms.util.FeatureFlags;
 import org.thoughtcrime.securesms.util.Hex;
 import org.thoughtcrime.securesms.util.MediaUtil;
-import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.crypto.UnidentifiedAccessPair;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentRemoteId;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
-import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage.Preview;
-import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
-import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
+import org.whispersystems.signalservice.api.messages.SignalServicePreview;
 import org.whispersystems.signalservice.api.messages.shared.SharedContact;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
@@ -70,7 +66,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -100,7 +95,7 @@ public abstract class PushSendJob extends SendJob {
 
   @Override
   protected final void onSend() throws Exception {
-    if (TextSecurePreferences.getSignedPreKeyFailureCount(context) > 5) {
+    if (SignalStore.account().aciPreKeys().getSignedPreKeyFailureCount() > 5) {
       ApplicationDependencies.getJobManager().add(new RotateSignedPreKeyJob());
       throw new TextSecureExpiredException("Too many signed prekey rotation failures");
     }
@@ -174,7 +169,7 @@ public abstract class PushSendJob extends SendJob {
       return Optional.absent();
     }
 
-    return Optional.of(ProfileKeyUtil.getProfileKey(context));
+    return Optional.of(ProfileKeyUtil.getSelfProfileKey().serialize());
   }
 
   protected SignalServiceAttachment getAttachmentFor(Attachment attachment) {
@@ -400,16 +395,16 @@ public abstract class PushSendJob extends SendJob {
     return sharedContacts;
   }
 
-  List<Preview> getPreviewsFor(OutgoingMediaMessage mediaMessage) {
+  List<SignalServicePreview> getPreviewsFor(OutgoingMediaMessage mediaMessage) {
     return Stream.of(mediaMessage.getLinkPreviews()).map(lp -> {
       SignalServiceAttachment attachment = lp.getThumbnail().isPresent() ? getAttachmentPointerFor(lp.getThumbnail().get()) : null;
-      return new Preview(lp.getUrl(), lp.getTitle(), lp.getDescription(), lp.getDate(), Optional.fromNullable(attachment));
+      return new SignalServicePreview(lp.getUrl(), lp.getTitle(), lp.getDescription(), lp.getDate(), Optional.fromNullable(attachment));
     }).toList();
   }
 
   List<SignalServiceDataMessage.Mention> getMentionsFor(@NonNull List<Mention> mentions) {
     return Stream.of(mentions)
-                 .map(m -> new SignalServiceDataMessage.Mention(Recipient.resolved(m.getRecipientId()).requireAci(), m.getStart(), m.getLength()))
+                 .map(m -> new SignalServiceDataMessage.Mention(Recipient.resolved(m.getRecipientId()).requireServiceId(), m.getStart(), m.getLength()))
                  .toList();
   }
 
@@ -446,18 +441,7 @@ public abstract class PushSendJob extends SendJob {
     }
   }
 
-  protected SignalServiceSyncMessage buildSelfSendSyncMessage(@NonNull Context context, @NonNull SignalServiceDataMessage message, Optional<UnidentifiedAccessPair> syncAccess) {
-    SignalServiceAddress  localAddress = new SignalServiceAddress(Recipient.self().requireAci(), Recipient.self().requireE164());
-    SentTranscriptMessage transcript   = new SentTranscriptMessage(Optional.of(localAddress),
-                                                                   message.getTimestamp(),
-                                                                   message,
-                                                                   message.getExpiresInSeconds(),
-                                                                   Collections.singletonMap(localAddress, syncAccess.isPresent()),
-                                                                   false);
-    return SignalServiceSyncMessage.forSentTranscript(transcript);
-  }
-
-  protected void handleProofRequiredException(@NonNull ProofRequiredException proofRequired, @Nullable Recipient recipient, long threadId, long messageId, boolean isMms)
+  protected static void handleProofRequiredException(@NonNull Context context, @NonNull ProofRequiredException proofRequired, @Nullable Recipient recipient, long threadId, long messageId, boolean isMms)
       throws ProofRequiredException, RetryLaterException
   {
     Log.w(TAG, "[Proof Required] Options: " + proofRequired.getOptions());
@@ -465,25 +449,25 @@ public abstract class PushSendJob extends SendJob {
     try {
       if (proofRequired.getOptions().contains(ProofRequiredException.Option.PUSH_CHALLENGE)) {
         ApplicationDependencies.getSignalServiceAccountManager().requestRateLimitPushChallenge();
-        log(TAG, "[Proof Required] Successfully requested a challenge. Waiting up to " + PUSH_CHALLENGE_TIMEOUT + " ms.");
+        Log.i(TAG, "[Proof Required] Successfully requested a challenge. Waiting up to " + PUSH_CHALLENGE_TIMEOUT + " ms.");
 
         boolean success = new PushChallengeRequest(PUSH_CHALLENGE_TIMEOUT).blockUntilSuccess();
 
         if (success) {
-          log(TAG, "Successfully responded to a push challenge. Retrying message send.");
+          Log.i(TAG, "Successfully responded to a push challenge. Retrying message send.");
           throw new RetryLaterException(1);
         } else {
-          warn(TAG, "Failed to respond to the push challenge in time. Falling back.");
+          Log.w(TAG, "Failed to respond to the push challenge in time. Falling back.");
         }
       }
     } catch (NonSuccessfulResponseCodeException e) {
-      warn(TAG, "[Proof Required] Could not request a push challenge (" + e.getCode() + "). Falling back.", e);
+      Log.w(TAG, "[Proof Required] Could not request a push challenge (" + e.getCode() + "). Falling back.", e);
     } catch (IOException e) {
-      warn(TAG, "[Proof Required] Network error when requesting push challenge. Retrying later.");
+      Log.w(TAG, "[Proof Required] Network error when requesting push challenge. Retrying later.");
       throw new RetryLaterException(e);
     }
 
-    warn(TAG, "[Proof Required] Marking message as rate-limited. (id: " + messageId + ", mms: " + isMms + ", thread: " + threadId + ")");
+    Log.w(TAG, "[Proof Required] Marking message as rate-limited. (id: " + messageId + ", mms: " + isMms + ", thread: " + threadId + ")");
     if (isMms) {
       SignalDatabase.mms().markAsRateLimited(messageId);
     } else {
@@ -491,13 +475,13 @@ public abstract class PushSendJob extends SendJob {
     }
 
     if (proofRequired.getOptions().contains(ProofRequiredException.Option.RECAPTCHA)) {
-      log(TAG, "[Proof Required] ReCAPTCHA required.");
+      Log.i(TAG, "[Proof Required] ReCAPTCHA required.");
       SignalStore.rateLimit().markNeedsRecaptcha(proofRequired.getToken());
 
       if (recipient != null) {
         ApplicationDependencies.getMessageNotifier().notifyProofRequired(context, recipient, threadId);
       } else {
-        warn(TAG, "[Proof Required] No recipient! Couldn't notify.");
+        Log.w(TAG, "[Proof Required] No recipient! Couldn't notify.");
       }
     }
 

@@ -88,6 +88,8 @@
     <dimen name="quote_corner_radius_bottom">4dp</dimen>
     <dimen name="quote_corner_radius_preview">18dp</dimen>
     <dimen name="quote_thumb_size">60dp</dimen>
+    <dimen name="quote_story_thumb_width">40dp</dimen>
+    <dimen name="quote_story_thumb_height">64dp</dimen>
 
     <dimen name="mention_corner_radius">4dp</dimen>
 
@@ -149,9 +151,7 @@
     <dimen name="contact_selection_item_height">@dimen/selection_item_header_height</dimen>
 
     <dimen name="conversation_reaction_scrubber_height">136dp</dimen>
-    <dimen name="conversation_reaction_scrubber_distance">25dp</dimen>
     <dimen name="conversation_reaction_touch_deadzone_size">40dp</dimen>
-    <dimen name="conversation_reaction_scrub_deadzone_distance_from_touch_top">136dp</dimen>
     <dimen name="conversation_reaction_scrub_deadzone_distance_from_touch_bottom">30dp</dimen>
     <dimen name="conversation_reaction_scrub_vertical_translation">25dp</dimen>
     <dimen name="conversation_reaction_scrub_horizontal_margin">16dp</dimen>
@@ -212,6 +212,9 @@
     <dimen name="verify_identity_vertical_margin">16dp</dimen>
 
     <dimen name="signal_context_menu_corner_radius">18dp</dimen>
-
     <dimen name="webrtc_button_size">48dp</dimen>
+
+    <dimen name="segmentedprogressbar_default_segment_margin">8dp</dimen>
+    <dimen name="segmentedprogressbar_default_corner_radius">0dp</dimen>
+    <dimen name="segmentedprogressbar_default_segment_stroke_width">0dp</dimen>
 </resources>

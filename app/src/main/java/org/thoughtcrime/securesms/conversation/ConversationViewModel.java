@@ -4,6 +4,8 @@ import android.app.Application;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.LiveDataReactiveStreams;
 import androidx.lifecycle.MutableLiveData;
@@ -17,6 +19,7 @@ import com.annimon.stream.Stream;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.reactivestreams.Publisher;
 import org.signal.core.util.MapUtil;
 import org.signal.core.util.logging.Log;
 import org.signal.paging.PagedData;
@@ -29,6 +32,7 @@ import org.thoughtcrime.securesms.conversation.colors.ChatColorsPalette;
 import org.thoughtcrime.securesms.conversation.colors.NameColor;
 import org.thoughtcrime.securesms.database.DatabaseObserver;
 import org.thoughtcrime.securesms.database.model.MessageId;
+import org.thoughtcrime.securesms.database.model.StoryViewState;
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies;
 import org.thoughtcrime.securesms.groups.GroupId;
 import org.thoughtcrime.securesms.groups.LiveGroup;
@@ -60,6 +64,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
 
 public class ConversationViewModel extends ViewModel {
@@ -90,6 +95,7 @@ public class ConversationViewModel extends ViewModel {
   private final Store<ThreadAnimationState>         threadAnimationStateStore;
   private final Observer<ThreadAnimationState>      threadAnimationStateStoreDriver;
   private final NotificationProfilesRepository      notificationProfilesRepository;
+  private final MutableLiveData<String>             searchQuery;
 
   private final Map<GroupId, Set<Recipient>> sessionMemberCache = new HashMap<>();
 
@@ -115,6 +121,7 @@ public class ConversationViewModel extends ViewModel {
     this.conversationTopMargin          = Transformations.distinctUntilChanged(LiveDataUtil.combineLatest(toolbarBottom, inlinePlayerHeight, Integer::sum));
     this.threadAnimationStateStore      = new Store<>(new ThreadAnimationState(-1L, null, false));
     this.notificationProfilesRepository = new NotificationProfilesRepository();
+    this.searchQuery                    = new MutableLiveData<>();
 
     LiveData<Recipient>          recipientLiveData  = LiveDataUtil.mapAsync(recipientId, Recipient::resolved);
     LiveData<ThreadAndRecipient> threadAndRecipient = LiveDataUtil.combineLatest(threadId, recipientLiveData, ThreadAndRecipient::new);
@@ -149,10 +156,10 @@ public class ConversationViewModel extends ViewModel {
       ApplicationDependencies.getDatabaseObserver().registerMessageInsertObserver(data.getThreadId(), messageInsertObserver);
 
       ConversationDataSource dataSource = new ConversationDataSource(context, data.getThreadId(), messageRequestData, data.showUniversalExpireTimerMessage());
-      PagingConfig           config     = new PagingConfig.Builder().setPageSize(25)
-                                                                    .setBufferPages(3)
-                                                                    .setStartIndex(Math.max(startPosition, 0))
-                                                                    .build();
+      PagingConfig config = new PagingConfig.Builder().setPageSize(25)
+                                                      .setBufferPages(3)
+                                                      .setStartIndex(Math.max(startPosition, 0))
+                                                      .build();
 
       Log.d(TAG, "Starting at position: " + startPosition + " || jumpToPosition: " + data.getJumpToPosition() + ", lastSeenPosition: " + data.getLastSeenPosition() + ", lastScrolledPosition: " + data.getLastScrolledPosition());
       return new Pair<>(data.getThreadId(), PagedData.create(dataSource, config));
@@ -167,13 +174,13 @@ public class ConversationViewModel extends ViewModel {
     canShowAsBubble      = LiveDataUtil.mapAsync(threadId, conversationRepository::canShowAsBubble);
     wallpaper            = LiveDataUtil.mapDistinct(Transformations.switchMap(recipientId,
                                                                               id -> Recipient.live(id).getLiveData()),
-                                                                              Recipient::getWallpaper);
+                                                    Recipient::getWallpaper);
 
     EventBus.getDefault().register(this);
 
     chatColors = LiveDataUtil.mapDistinct(Transformations.switchMap(recipientId,
                                                                     id -> Recipient.live(id).getLiveData()),
-                                                                    Recipient::getChatColors);
+                                          Recipient::getChatColors);
 
     threadAnimationStateStore.update(threadId, (id, state) -> {
       if (state.getThreadId() == id) {
@@ -193,6 +200,14 @@ public class ConversationViewModel extends ViewModel {
 
     this.threadAnimationStateStoreDriver = state -> {};
     threadAnimationStateStore.getStateLiveData().observeForever(threadAnimationStateStoreDriver);
+  }
+
+  LiveData<StoryViewState> getStoryViewState(@NonNull LifecycleOwner lifecycle) {
+    Publisher<RecipientId>   recipientIdPublisher = LiveDataReactiveStreams.toPublisher(lifecycle, recipientId);
+    Flowable<StoryViewState> storyViewState       = Flowable.fromPublisher(recipientIdPublisher)
+                                                            .flatMap(id -> StoryViewState.getForRecipientId(id).toFlowable(BackpressureStrategy.LATEST));
+
+    return LiveDataReactiveStreams.fromPublisher(storyViewState);
   }
 
   void onMessagesCommitted(@NonNull List<ConversationMessage> conversationMessages) {
@@ -243,6 +258,14 @@ public class ConversationViewModel extends ViewModel {
     this.threadId.postValue(-1L);
   }
 
+  void setSearchQuery(@Nullable String query) {
+    searchQuery.setValue(query);
+  }
+
+  @NonNull LiveData<String> getSearchQuery() {
+    return searchQuery;
+  }
+
   @NonNull LiveData<Integer> getConversationTopMargin() {
     return conversationTopMargin;
   }
@@ -273,6 +296,10 @@ public class ConversationViewModel extends ViewModel {
 
   void setHasUnreadMentions(boolean hasUnreadMentions) {
     this.hasUnreadMentions.setValue(hasUnreadMentions);
+  }
+
+  boolean getShowScrollButtons() {
+    return this.showScrollButtons.getValue();
   }
 
   void setShowScrollButtons(boolean showScrollButtons) {
@@ -310,7 +337,7 @@ public class ConversationViewModel extends ViewModel {
                                      .sortBy(Recipient::requireStringId)
                                      .toList();
 
-      List<NameColor> names = ChatColorsPalette.Names.getAll();
+      List<NameColor>             names  = ChatColorsPalette.Names.getAll();
       Map<RecipientId, NameColor> colors = new HashMap<>();
       for (int i = 0; i < sorted.size(); i++) {
         colors.put(sorted.get(i).getId(), names.get(i % names.size()));

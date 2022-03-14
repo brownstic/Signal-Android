@@ -33,6 +33,7 @@ import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase.Status;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
 import org.thoughtcrime.securesms.database.documents.NetworkFailure;
+import org.thoughtcrime.securesms.database.model.databaseprotos.BodyRangeList;
 import org.thoughtcrime.securesms.linkpreview.LinkPreview;
 import org.thoughtcrime.securesms.mms.SlideDeck;
 import org.thoughtcrime.securesms.recipients.Recipient;
@@ -56,8 +57,9 @@ import java.util.stream.Collectors;
 public class MediaMmsMessageRecord extends MmsMessageRecord {
   private final static String TAG = Log.tag(MediaMmsMessageRecord.class);
 
-  private final int     partCount;
-  private final boolean mentionsSelf;
+  private final int           partCount;
+  private final boolean       mentionsSelf;
+  private final BodyRangeList messageRanges;
 
   public MediaMmsMessageRecord(long id,
                                Recipient conversationRecipient,
@@ -88,14 +90,19 @@ public class MediaMmsMessageRecord extends MmsMessageRecord {
                                boolean mentionsSelf,
                                long notifiedTimestamp,
                                int viewedReceiptCount,
-                               long receiptTimestamp)
+                               long receiptTimestamp,
+                               @Nullable BodyRangeList messageRanges,
+                               @NonNull StoryType storyType,
+                               @Nullable ParentStoryId parentStoryId)
   {
     super(id, body, conversationRecipient, individualRecipient, recipientDeviceId, dateSent,
           dateReceived, dateServer, threadId, Status.STATUS_NONE, deliveryReceiptCount, mailbox, mismatches, failures,
           subscriptionId, expiresIn, expireStarted, viewOnce, slideDeck,
-          readReceiptCount, quote, contacts, linkPreviews, unidentified, reactions, remoteDelete, notifiedTimestamp, viewedReceiptCount, receiptTimestamp);
-    this.partCount    = partCount;
-    this.mentionsSelf = mentionsSelf;
+          readReceiptCount, quote, contacts, linkPreviews, unidentified, reactions, remoteDelete, notifiedTimestamp, viewedReceiptCount, receiptTimestamp,
+          storyType, parentStoryId);
+    this.partCount     = partCount;
+    this.mentionsSelf  = mentionsSelf;
+    this.messageRanges = messageRanges;
   }
 
   @Override
@@ -128,11 +135,25 @@ public class MediaMmsMessageRecord extends MmsMessageRecord {
     return partCount;
   }
 
+  public @Nullable BodyRangeList getMessageRanges() {
+    return messageRanges;
+  }
+
+  @Override
+  public boolean hasMessageRanges() {
+    return messageRanges != null;
+  }
+
+  @Override
+  public @NonNull BodyRangeList requireMessageRanges() {
+    return Objects.requireNonNull(messageRanges);
+  }
+
   public @NonNull MediaMmsMessageRecord withReactions(@NonNull List<ReactionRecord> reactions) {
     return new MediaMmsMessageRecord(getId(), getRecipient(), getIndividualRecipient(), getRecipientDeviceId(), getDateSent(), getDateReceived(), getServerTimestamp(), getDeliveryReceiptCount(), getThreadId(), getBody(), getSlideDeck(),
                                      getPartCount(), getType(), getIdentityKeyMismatches(), getNetworkFailures(), getSubscriptionId(), getExpiresIn(), getExpireStarted(), isViewOnce(),
                                      getReadReceiptCount(), getQuote(), getSharedContacts(), getLinkPreviews(), isUnidentified(), reactions, isRemoteDelete(), mentionsSelf,
-                                     getNotifiedTimestamp(), getViewedReceiptCount(), getReceiptTimestamp());
+                                     getNotifiedTimestamp(), getViewedReceiptCount(), getReceiptTimestamp(), getMessageRanges(), getStoryType(), getParentStoryId());
   }
 
   public @NonNull MediaMmsMessageRecord withAttachments(@NonNull Context context, @NonNull List<DatabaseAttachment> attachments) {
@@ -153,7 +174,7 @@ public class MediaMmsMessageRecord extends MmsMessageRecord {
     return new MediaMmsMessageRecord(getId(), getRecipient(), getIndividualRecipient(), getRecipientDeviceId(), getDateSent(), getDateReceived(), getServerTimestamp(), getDeliveryReceiptCount(), getThreadId(), getBody(), slideDeck,
                                      getPartCount(), getType(), getIdentityKeyMismatches(), getNetworkFailures(), getSubscriptionId(), getExpiresIn(), getExpireStarted(), isViewOnce(),
                                      getReadReceiptCount(), quote, contacts, linkPreviews, isUnidentified(), getReactions(), isRemoteDelete(), mentionsSelf,
-                                     getNotifiedTimestamp(), getViewedReceiptCount(), getReceiptTimestamp());
+                                     getNotifiedTimestamp(), getViewedReceiptCount(), getReceiptTimestamp(), getMessageRanges(), getStoryType(), getParentStoryId());
   }
 
   private static @NonNull List<Contact> updateContacts(@NonNull List<Contact> contacts, @NonNull Map<AttachmentId, DatabaseAttachment> attachmentIdMap) {

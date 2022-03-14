@@ -101,16 +101,16 @@ public final class SenderKeyDistributionSendJob extends BaseJob {
     SenderKeyDistributionMessage           message        = messageSender.getOrCreateNewGroupSession(distributionId);
     List<Optional<UnidentifiedAccessPair>> access         = UnidentifiedAccessUtil.getAccessFor(context, Collections.singletonList(recipient));
 
-    SendMessageResult result = messageSender.sendSenderKeyDistributionMessage(distributionId, address, access, message, groupId.getDecodedId()).get(0);
+    SendMessageResult result = messageSender.sendSenderKeyDistributionMessage(distributionId, address, access, message, Optional.of(groupId.getDecodedId())).get(0);
 
     if (result.isSuccess()) {
       List<SignalProtocolAddress> addresses = result.getSuccess()
                                                     .getDevices()
                                                     .stream()
-                                                    .map(device -> new SignalProtocolAddress(recipient.requireServiceId(), device))
+                                                    .map(device -> recipient.requireServiceId().toProtocolAddress(device))
                                                     .collect(Collectors.toList());
 
-      ApplicationDependencies.getSenderKeyStore().markSenderKeySharedWith(distributionId, addresses);
+      ApplicationDependencies.getProtocolStore().aci().markSenderKeySharedWith(distributionId, addresses);
     }
   }
 

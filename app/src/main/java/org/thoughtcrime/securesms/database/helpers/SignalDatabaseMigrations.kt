@@ -1,5 +1,6 @@
 package org.thoughtcrime.securesms.database.helpers
 
+import android.app.Application
 import android.app.NotificationChannel
 import android.content.ContentValues
 import android.content.Context
@@ -9,8 +10,8 @@ import android.os.Build
 import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.text.TextUtils
+import androidx.core.content.contentValuesOf
 import com.annimon.stream.Stream
-import com.bumptech.glide.Glide
 import com.google.protobuf.InvalidProtocolBufferException
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import org.signal.core.util.logging.Log
@@ -19,8 +20,11 @@ import org.thoughtcrime.securesms.contacts.avatars.ContactColorsLegacy
 import org.thoughtcrime.securesms.conversation.colors.AvatarColor
 import org.thoughtcrime.securesms.conversation.colors.ChatColors
 import org.thoughtcrime.securesms.conversation.colors.ChatColorsMapper.entrySet
+import org.thoughtcrime.securesms.database.KeyValueDatabase
 import org.thoughtcrime.securesms.database.RecipientDatabase
+import org.thoughtcrime.securesms.database.model.DistributionListId
 import org.thoughtcrime.securesms.database.model.databaseprotos.ReactionList
+import org.thoughtcrime.securesms.database.requireString
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies
 import org.thoughtcrime.securesms.groups.GroupId
 import org.thoughtcrime.securesms.jobs.RefreshPreKeysJob
@@ -40,16 +44,15 @@ import org.thoughtcrime.securesms.util.SqlUtil
 import org.thoughtcrime.securesms.util.Stopwatch
 import org.thoughtcrime.securesms.util.Triple
 import org.thoughtcrime.securesms.util.Util
+import org.whispersystems.signalservice.api.push.ACI
 import org.whispersystems.signalservice.api.push.DistributionId
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.lang.AssertionError
-import java.util.ArrayList
-import java.util.HashSet
 import java.util.LinkedList
 import java.util.Locale
+import java.util.UUID
 
 /**
  * Contains all of the database migrations for [SignalDatabase]. Broken into a separate file for cleanliness.
@@ -181,11 +184,21 @@ object SignalDatabaseMigrations {
   private const val PNI = 122
   private const val NOTIFICATION_PROFILES = 123
   private const val NOTIFICATION_PROFILES_END_FIX = 124
+  private const val REACTION_BACKUP_CLEANUP = 125
+  private const val REACTION_REMOTE_DELETE_CLEANUP = 126
+  private const val PNI_CLEANUP = 127
+  private const val MESSAGE_RANGES = 128
+  private const val REACTION_TRIGGER_FIX = 129
+  private const val PNI_STORES = 130
+  private const val DONATION_RECEIPTS = 131
+  private const val STORIES = 132
+  private const val ALLOW_STORY_REPLIES = 133
+  private const val GROUP_STORIES = 134
 
-  const val DATABASE_VERSION = 124
+  const val DATABASE_VERSION = 134
 
   @JvmStatic
-  fun migrate(context: Context, db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+  fun migrate(context: Application, db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
     if (oldVersion < RECIPIENT_CALL_RINGTONE_VERSION) {
       db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN call_ringtone TEXT DEFAULT NULL")
       db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN call_vibrate INTEGER DEFAULT " + RecipientDatabase.VibrateState.DEFAULT.id)
@@ -697,7 +710,6 @@ object SignalDatabaseMigrations {
 
     if (oldVersion < ATTACHMENT_CLEAR_HASHES_2) {
       db.execSQL("UPDATE part SET data_hash = null")
-      Glide.get(context).clearDiskCache()
     }
 
     if (oldVersion < UUIDS) {
@@ -2232,6 +2244,243 @@ object SignalDatabaseMigrations {
         """.trimIndent()
       )
     }
+
+    if (oldVersion < REACTION_BACKUP_CLEANUP) {
+      db.execSQL(
+        // language=sql
+        """
+          DELETE FROM reaction
+          WHERE
+            (is_mms = 0 AND message_id NOT IN (SELECT _id FROM sms))
+            OR
+            (is_mms = 1 AND message_id NOT IN (SELECT _id FROM mms))
+        """.trimIndent()
+      )
+    }
+
+    if (oldVersion < REACTION_REMOTE_DELETE_CLEANUP) {
+      db.execSQL(
+        // language=sql
+        """
+          DELETE FROM reaction
+          WHERE
+            (is_mms = 0 AND message_id IN (SELECT _id from sms WHERE remote_deleted = 1))
+            OR
+            (is_mms = 1 AND message_id IN (SELECT _id from mms WHERE remote_deleted = 1))
+        """.trimIndent()
+      )
+    }
+
+    if (oldVersion < PNI_CLEANUP) {
+      db.execSQL("UPDATE recipient SET pni = NULL WHERE phone IS NULL")
+    }
+
+    if (oldVersion < MESSAGE_RANGES) {
+      db.execSQL("ALTER TABLE mms ADD COLUMN ranges BLOB DEFAULT NULL")
+    }
+
+    if (oldVersion < REACTION_TRIGGER_FIX) {
+      db.execSQL("DROP TRIGGER reactions_mms_delete")
+      db.execSQL("CREATE TRIGGER reactions_mms_delete AFTER DELETE ON mms BEGIN DELETE FROM reaction WHERE message_id = old._id AND is_mms = 1; END")
+
+      db.execSQL(
+        // language=sql
+        """
+          DELETE FROM reaction
+          WHERE
+            (is_mms = 0 AND message_id NOT IN (SELECT _id from sms))
+            OR
+            (is_mms = 1 AND message_id NOT IN (SELECT _id from mms))
+        """.trimIndent()
+      )
+    }
+
+    if (oldVersion < PNI_STORES) {
+      val localAci: ACI? = getLocalAci(context)
+
+      // One-Time Prekeys
+      db.execSQL(
+        """
+        CREATE TABLE one_time_prekeys_tmp (
+          _id INTEGER PRIMARY KEY,
+          account_id TEXT NOT NULL,
+          key_id INTEGER,
+          public_key TEXT NOT NULL,
+          private_key TEXT NOT NULL,
+          UNIQUE(account_id, key_id)
+        )
+        """.trimIndent()
+      )
+
+      if (localAci != null) {
+        db.execSQL(
+          """
+          INSERT INTO one_time_prekeys_tmp (account_id, key_id, public_key, private_key)
+          SELECT
+            '$localAci' AS account_id,
+            one_time_prekeys.key_id,
+            one_time_prekeys.public_key,
+            one_time_prekeys.private_key
+          FROM one_time_prekeys
+          """.trimIndent()
+        )
+      } else {
+        Log.w(TAG, "No local ACI set. Not migrating any existing one-time prekeys.")
+      }
+
+      db.execSQL("DROP TABLE one_time_prekeys")
+      db.execSQL("ALTER TABLE one_time_prekeys_tmp RENAME TO one_time_prekeys")
+
+      // Signed Prekeys
+      db.execSQL(
+        """
+        CREATE TABLE signed_prekeys_tmp (
+          _id INTEGER PRIMARY KEY,
+          account_id TEXT NOT NULL,
+          key_id INTEGER,
+          public_key TEXT NOT NULL,
+          private_key TEXT NOT NULL,
+          signature TEXT NOT NULL,
+          timestamp INTEGER DEFAULT 0,
+          UNIQUE(account_id, key_id)
+        )
+        """.trimIndent()
+      )
+
+      if (localAci != null) {
+        db.execSQL(
+          """
+          INSERT INTO signed_prekeys_tmp (account_id, key_id, public_key, private_key, signature, timestamp)
+          SELECT
+            '$localAci' AS account_id,
+            signed_prekeys.key_id,
+            signed_prekeys.public_key,
+            signed_prekeys.private_key,
+            signed_prekeys.signature,
+            signed_prekeys.timestamp
+          FROM signed_prekeys
+          """.trimIndent()
+        )
+      } else {
+        Log.w(TAG, "No local ACI set. Not migrating any existing signed prekeys.")
+      }
+
+      db.execSQL("DROP TABLE signed_prekeys")
+      db.execSQL("ALTER TABLE signed_prekeys_tmp RENAME TO signed_prekeys")
+
+      // Sessions
+      db.execSQL(
+        """
+        CREATE TABLE sessions_tmp (
+          _id INTEGER PRIMARY KEY AUTOINCREMENT,
+          account_id TEXT NOT NULL,
+          address TEXT NOT NULL,
+          device INTEGER NOT NULL,
+          record BLOB NOT NULL,
+          UNIQUE(account_id, address, device)
+        )
+        """.trimIndent()
+      )
+
+      if (localAci != null) {
+        db.execSQL(
+          """
+          INSERT INTO sessions_tmp (account_id, address, device, record)
+          SELECT
+            '$localAci' AS account_id,
+            sessions.address,
+            sessions.device,
+            sessions.record
+          FROM sessions
+          """.trimIndent()
+        )
+      } else {
+        Log.w(TAG, "No local ACI set. Not migrating any existing sessions.")
+      }
+
+      db.execSQL("DROP TABLE sessions")
+      db.execSQL("ALTER TABLE sessions_tmp RENAME TO sessions")
+    }
+
+    if (oldVersion < DONATION_RECEIPTS) {
+      db.execSQL(
+        // language=sql
+        """
+          CREATE TABLE donation_receipt (
+            _id INTEGER PRIMARY KEY AUTOINCREMENT,
+            receipt_type TEXT NOT NULL,
+            receipt_date INTEGER NOT NULL,
+            amount TEXT NOT NULL,
+            currency TEXT NOT NULL,
+            subscription_level INTEGER NOT NULL
+          )
+        """.trimIndent()
+      )
+
+      db.execSQL("CREATE INDEX IF NOT EXISTS donation_receipt_type_index ON donation_receipt (receipt_type);")
+      db.execSQL("CREATE INDEX IF NOT EXISTS donation_receipt_date_index ON donation_receipt (receipt_date);")
+    }
+
+    if (oldVersion < STORIES) {
+      db.execSQL("ALTER TABLE mms ADD COLUMN is_story INTEGER DEFAULT 0")
+      db.execSQL("ALTER TABLE mms ADD COLUMN parent_story_id INTEGER DEFAULT 0")
+      db.execSQL("CREATE INDEX IF NOT EXISTS mms_is_story_index ON mms (is_story)")
+      db.execSQL("CREATE INDEX IF NOT EXISTS mms_parent_story_id_index ON mms (parent_story_id)")
+
+      db.execSQL("ALTER TABLE recipient ADD COLUMN distribution_list_id INTEGER DEFAULT NULL")
+
+      db.execSQL(
+        // language=sql
+        """
+            CREATE TABLE distribution_list (
+              _id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT UNIQUE NOT NULL,
+              distribution_id TEXT UNIQUE NOT NULL,
+              recipient_id INTEGER UNIQUE REFERENCES recipient (_id) ON DELETE CASCADE
+            )
+        """.trimIndent()
+      )
+
+      db.execSQL(
+        // language=sql
+        """
+            CREATE TABLE distribution_list_member (
+              _id INTEGER PRIMARY KEY AUTOINCREMENT,
+              list_id INTEGER NOT NULL REFERENCES distribution_list (_id) ON DELETE CASCADE,
+              recipient_id INTEGER NOT NULL,
+              UNIQUE(list_id, recipient_id) ON CONFLICT IGNORE
+            )
+        """.trimIndent()
+      )
+
+      val recipientId = db.insert(
+        "recipient", null,
+        contentValuesOf(
+          "distribution_list_id" to DistributionListId.MY_STORY_ID,
+          "storage_service_key" to Base64.encodeBytes(StorageSyncHelper.generateKey()),
+          "profile_sharing" to 1
+        )
+      )
+
+      val listUUID = UUID.randomUUID().toString()
+      db.insert(
+        "distribution_list", null,
+        contentValuesOf(
+          "_id" to DistributionListId.MY_STORY_ID,
+          "name" to listUUID,
+          "distribution_id" to listUUID,
+          "recipient_id" to recipientId
+        )
+      )
+    }
+
+    if (oldVersion < ALLOW_STORY_REPLIES) {
+      db.execSQL("ALTER TABLE distribution_list ADD COLUMN allows_replies INTEGER DEFAULT 1")
+    }
+
+    if (oldVersion < GROUP_STORIES) {
+      db.execSQL("ALTER TABLE groups ADD COLUMN display_as_story INTEGER DEFAULT 0")
+    }
   }
 
   @JvmStatic
@@ -2241,6 +2490,9 @@ object SignalDatabaseMigrations {
     }
   }
 
+  /**
+   * Important: You can't change this method, or you risk breaking existing migrations. If you need to change this, make a new method.
+   */
   private fun migrateReaction(db: SQLiteDatabase, cursor: Cursor, isMms: Boolean) {
     try {
       val messageId = CursorUtil.requireLong(cursor, "_id")
@@ -2259,6 +2511,24 @@ object SignalDatabaseMigrations {
       }
     } catch (e: InvalidProtocolBufferException) {
       Log.w(TAG, "Failed to parse reaction!")
+    }
+  }
+
+  /**
+   * Important: You can't change this method, or you risk breaking existing migrations. If you need to change this, make a new method.
+   */
+  private fun getLocalAci(context: Application): ACI? {
+    if (KeyValueDatabase.exists(context)) {
+      val keyValueDatabase = KeyValueDatabase.getInstance(context).readableDatabase
+      keyValueDatabase.query("key_value", arrayOf("value"), "key = ?", SqlUtil.buildArgs("account.aci"), null, null, null).use { cursor ->
+        return if (cursor.moveToFirst()) {
+          ACI.parseOrNull(cursor.requireString("value"))
+        } else {
+          null
+        }
+      }
+    } else {
+      return ACI.parseOrNull(PreferenceManager.getDefaultSharedPreferences(context).getString("pref_local_uuid", null))
     }
   }
 }

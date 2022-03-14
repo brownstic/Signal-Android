@@ -4,6 +4,8 @@ package org.thoughtcrime.securesms.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import androidx.annotation.NonNull;
+
 import net.zetetic.database.SQLException;
 import net.zetetic.database.sqlcipher.SQLiteStatement;
 import net.zetetic.database.sqlcipher.SQLiteTransactionListener;
@@ -11,8 +13,11 @@ import net.zetetic.database.sqlcipher.SQLiteTransactionListener;
 import org.signal.core.util.tracing.Tracer;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * This is a wrapper around {@link net.zetetic.database.sqlcipher.SQLiteDatabase}. There's difficulties
@@ -33,9 +38,13 @@ public class SQLiteDatabase {
   private static final String KEY_THREAD = "thread";
   private static final String NAME_LOCK  = "LOCK";
 
-
   private final net.zetetic.database.sqlcipher.SQLiteDatabase wrapped;
   private final Tracer                                        tracer;
+
+  private static final ThreadLocal<Set<Runnable>> POST_TRANSACTION_TASKS = new ThreadLocal<>();
+  static {
+    POST_TRANSACTION_TASKS.set(new LinkedHashSet<>());
+  }
 
   public SQLiteDatabase(net.zetetic.database.sqlcipher.SQLiteDatabase wrapped) {
     this.wrapped = wrapped;
@@ -102,8 +111,75 @@ public class SQLiteDatabase {
     return wrapped;
   }
 
+  /**
+   * Allows you to enqueue a task to be run after the active transaction is successfully completed.
+   * If the transaction fails, the task is discarded.
+   * If there is no current transaction open, the task is run immediately.
+   */
+  public void runPostSuccessfulTransaction(@NonNull Runnable task) {
+    if (wrapped.inTransaction()) {
+      getPostTransactionTasks().add(task);
+    } else {
+      task.run();
+    }
+  }
+
+  /**
+   * Does the same as {@link #runPostSuccessfulTransaction(Runnable)}, except that you can pass in a "dedupe key".
+   * There can only be one task enqueued for a given dedupe key. So, if you enqueue a second task with that key, it will be discarded.
+   */
+  public void runPostSuccessfulTransaction(@NonNull String dedupeKey, @NonNull Runnable task) {
+    if (wrapped.inTransaction()) {
+      getPostTransactionTasks().add(new DedupedRunnable(dedupeKey, task));
+    } else {
+      task.run();
+    }
+  }
+
+  private @NonNull Set<Runnable> getPostTransactionTasks() {
+    Set<Runnable> tasks = POST_TRANSACTION_TASKS.get();
+
+    if (tasks == null) {
+      tasks = new LinkedHashSet<>();
+      POST_TRANSACTION_TASKS.set(tasks);
+    }
+
+    return tasks;
+  }
+
   private interface Returnable<E> {
     E run();
+  }
+
+  /**
+   * Runnable whose equals/hashcode is determined by a key you pass in.
+   */
+  private static class DedupedRunnable implements Runnable {
+    private final String   key;
+    private final Runnable runnable;
+
+    protected DedupedRunnable(@NonNull String key, @NonNull Runnable runnable) {
+      this.key      = key;
+      this.runnable = runnable;
+    }
+
+    @Override
+    public void run() {
+      runnable.run();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      final DedupedRunnable that = (DedupedRunnable) o;
+      return key.equals(that.key);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(key);
+    }
   }
 
 
@@ -113,7 +189,31 @@ public class SQLiteDatabase {
 
   public void beginTransaction() {
     traceLockStart();
-    trace("beginTransaction()", wrapped::beginTransaction);
+
+    if (wrapped.inTransaction()) {
+      trace("beginTransaction()", wrapped::beginTransaction);
+    } else {
+      trace("beginTransaction()", () -> {
+        wrapped.beginTransactionWithListener(new SQLiteTransactionListener() {
+          @Override
+          public void onBegin() { }
+
+          @Override
+          public void onCommit() {
+            Set<Runnable> tasks = getPostTransactionTasks();
+            for (Runnable r : tasks) {
+              r.run();
+            }
+            tasks.clear();
+          }
+
+          @Override
+          public void onRollback() {
+            getPostTransactionTasks().clear();
+          }
+        });
+      });
+    }
   }
 
   public void endTransaction() {
@@ -126,34 +226,42 @@ public class SQLiteDatabase {
   }
 
   public Cursor query(boolean distinct, String table, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy, String limit) {
+    DatabaseMonitor.onQuery(distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
     return traceSql("query(9)", table, selection, false, () -> wrapped.query(distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit));
   }
 
   public Cursor queryWithFactory(net.zetetic.database.sqlcipher.SQLiteDatabase.CursorFactory cursorFactory, boolean distinct, String table, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy, String limit) {
+    DatabaseMonitor.onQuery(distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
     return traceSql("queryWithFactory()", table, selection, false, () -> wrapped.queryWithFactory(cursorFactory, distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit));
   }
 
   public Cursor query(String table, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
+    DatabaseMonitor.onQuery(false, table, columns, selection, selectionArgs, groupBy, having, orderBy, null);
     return traceSql("query(7)", table, selection, false, () -> wrapped.query(table, columns, selection, selectionArgs, groupBy, having, orderBy));
   }
 
   public Cursor query(String table, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy, String limit) {
+    DatabaseMonitor.onQuery(false, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
     return traceSql("query(8)", table, selection, false, () -> wrapped.query(table, columns, selection, selectionArgs, groupBy, having, orderBy, limit));
   }
 
   public Cursor rawQuery(String sql, String[] selectionArgs) {
+    DatabaseMonitor.onSql(sql, selectionArgs);
     return traceSql("rawQuery(2a)", sql, false, () -> wrapped.rawQuery(sql, selectionArgs));
   }
 
   public Cursor rawQuery(String sql, Object[] args) {
+    DatabaseMonitor.onSql(sql, args);
     return traceSql("rawQuery(2b)", sql, false,() -> wrapped.rawQuery(sql, args));
   }
 
   public Cursor rawQueryWithFactory(net.zetetic.database.sqlcipher.SQLiteDatabase.CursorFactory cursorFactory, String sql, String[] selectionArgs, String editTable) {
+    DatabaseMonitor.onSql(sql, selectionArgs);
     return traceSql("rawQueryWithFactory()", sql, false, () -> wrapped.rawQueryWithFactory(cursorFactory, sql, selectionArgs, editTable));
   }
 
   public Cursor rawQuery(String sql, String[] selectionArgs, int initialRead, int maxRead) {
+    DatabaseMonitor.onSql(sql, selectionArgs);
     return traceSql("rawQuery(4)", sql, false, () -> rawQuery(sql, selectionArgs, initialRead, maxRead));
   }
 
@@ -178,10 +286,12 @@ public class SQLiteDatabase {
   }
 
   public int delete(String table, String whereClause, String[] whereArgs) {
+    DatabaseMonitor.onDelete(table, whereClause, whereArgs);
     return traceSql("delete()", table, whereClause, true, () -> wrapped.delete(table, whereClause, whereArgs));
   }
 
   public int update(String table, ContentValues values, String whereClause, String[] whereArgs) {
+    DatabaseMonitor.onUpdate(table, values, whereClause, whereArgs);
     return traceSql("update()", table, whereClause, true, () -> wrapped.update(table, values, whereClause, whereArgs));
   }
 
@@ -190,14 +300,17 @@ public class SQLiteDatabase {
   }
 
   public void execSQL(String sql) throws SQLException {
+    DatabaseMonitor.onSql(sql, null);
     traceSql("execSQL(1)", sql, true, () -> wrapped.execSQL(sql));
   }
 
   public void rawExecSQL(String sql) {
+    DatabaseMonitor.onSql(sql, null);
     traceSql("rawExecSQL()", sql, true, () -> wrapped.rawExecSQL(sql));
   }
 
   public void execSQL(String sql, Object[] bindArgs) throws SQLException {
+    DatabaseMonitor.onSql(sql, null);
     traceSql("execSQL(2)", sql, true, () -> wrapped.execSQL(sql, bindArgs));
   }
 
