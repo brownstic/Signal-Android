@@ -67,8 +67,8 @@ ktlint {
     version = "0.43.2"
 }
 
-def canonicalVersionCode = 1
-def canonicalVersionName = "1.0"
+def canonicalVersionCode = 4
+def canonicalVersionName = "1.0.1"
 
 def postFixSize = 100
 def abiPostFix = ['universal'   : 0,
@@ -440,11 +440,15 @@ dependencies {
     implementation libs.androidx.biometric
     implementation libs.androidx.sharetarget
 
-    implementation (libs.firebase.messaging) {
+    /*implementation (libs.firebase.messaging) {
         exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
-    }
+    }*/
 
     //Added
+    implementation platform('com.google.firebase:firebase-bom:29.3.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-messaging'
+
     implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
 
     implementation libs.google.play.services.maps
