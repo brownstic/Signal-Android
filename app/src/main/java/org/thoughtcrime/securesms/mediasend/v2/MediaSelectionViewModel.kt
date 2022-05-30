@@ -12,7 +12,7 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import org.thoughtcrime.securesms.TransportOption
 import org.thoughtcrime.securesms.components.mention.MentionAnnotation
-import org.thoughtcrime.securesms.contacts.paged.RecipientSearchKey
+import org.thoughtcrime.securesms.contacts.paged.ContactSearchKey
 import org.thoughtcrime.securesms.mediasend.Media
 import org.thoughtcrime.securesms.mediasend.MediaSendActivityResult
 import org.thoughtcrime.securesms.mediasend.VideoEditorFragment
@@ -20,6 +20,7 @@ import org.thoughtcrime.securesms.mms.MediaConstraints
 import org.thoughtcrime.securesms.mms.SentMediaQuality
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.scribbles.ImageEditorFragment
+import org.thoughtcrime.securesms.sharing.MultiShareArgs
 import org.thoughtcrime.securesms.util.SingleLiveEvent
 import org.thoughtcrime.securesms.util.Util
 import org.thoughtcrime.securesms.util.livedata.Store
@@ -34,13 +35,15 @@ class MediaSelectionViewModel(
   initialMedia: List<Media>,
   initialMessage: CharSequence?,
   val isReply: Boolean,
+  isStory: Boolean,
   private val repository: MediaSelectionRepository
 ) : ViewModel() {
 
   private val store: Store<MediaSelectionState> = Store(
     MediaSelectionState(
       transportOption = transportOption,
-      message = initialMessage
+      message = initialMessage,
+      isStory = isStory
     )
   )
 
@@ -103,6 +106,10 @@ class MediaSelectionViewModel(
     addMedia(listOf(media))
   }
 
+  fun isStory(): Boolean {
+    return store.state.isStory
+  }
+
   private fun addMedia(media: List<Media>) {
     val newSelectionList: List<Media> = linkedSetOf<Media>().apply {
       addAll(store.state.selectedMedia)
@@ -111,7 +118,7 @@ class MediaSelectionViewModel(
 
     disposables.add(
       repository
-        .populateAndFilterMedia(newSelectionList, getMediaConstraints(), store.state.maxSelection)
+        .populateAndFilterMedia(newSelectionList, getMediaConstraints(), store.state.maxSelection, store.state.isStory)
         .subscribe { filterResult ->
           if (filterResult.filteredMedia.isNotEmpty()) {
             store.update {
@@ -278,7 +285,7 @@ class MediaSelectionViewModel(
   }
 
   fun send(
-    selectedContacts: List<RecipientSearchKey> = emptyList()
+    selectedContacts: List<ContactSearchKey.RecipientSearchKey> = emptyList()
   ): Maybe<MediaSendActivityResult> {
     return UntrustedRecords.checkForBadIdentityRecords(selectedContacts.toSet()).andThen(
       repository.send(
@@ -336,6 +343,10 @@ class MediaSelectionViewModel(
 
   fun hasSelectedMedia(): Boolean {
     return store.state.selectedMedia.isNotEmpty()
+  }
+
+  fun canShareSelectedMediaToStory(): Boolean {
+    return store.state.selectedMedia.all { MultiShareArgs.isValidStoryDuration(it) }
   }
 
   fun onRestoreState(savedInstanceState: Bundle) {
@@ -420,10 +431,11 @@ class MediaSelectionViewModel(
     private val initialMedia: List<Media>,
     private val initialMessage: CharSequence?,
     private val isReply: Boolean,
+    private val isStory: Boolean,
     private val repository: MediaSelectionRepository
   ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-      return requireNotNull(modelClass.cast(MediaSelectionViewModel(destination, transportOption, initialMedia, initialMessage, isReply, repository)))
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+      return requireNotNull(modelClass.cast(MediaSelectionViewModel(destination, transportOption, initialMedia, initialMessage, isReply, isStory, repository)))
     }
   }
 }

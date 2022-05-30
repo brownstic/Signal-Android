@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.viewpager2.widget.ViewPager2
@@ -21,7 +22,10 @@ import org.thoughtcrime.securesms.stories.viewer.reply.BottomSheetBehaviorDelega
 import org.thoughtcrime.securesms.stories.viewer.reply.StoryViewsAndRepliesPagerChild
 import org.thoughtcrime.securesms.stories.viewer.reply.StoryViewsAndRepliesPagerParent
 import org.thoughtcrime.securesms.stories.viewer.reply.group.StoryGroupReplyFragment
+import org.thoughtcrime.securesms.util.BottomSheetUtil.requireCoordinatorLayout
 import org.thoughtcrime.securesms.util.LifecycleDisposable
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Tab based host for Views and Replies
@@ -40,9 +44,18 @@ class StoryViewsAndRepliesDialogFragment : FixedRoundedCornerBottomSheetDialogFr
   private val startPageIndex: Int
     get() = requireArguments().getInt(ARG_START_PAGE)
 
+  private val isFromNotification: Boolean
+    get() = requireArguments().getBoolean(ARG_IS_FROM_NOTIFICATION, false)
+
+  private val groupReplyStartPosition: Int
+    get() = requireArguments().getInt(ARG_GROUP_REPLY_START_POSITION, -1)
+
   override val peekHeightPercentage: Float = 1f
 
   private lateinit var pager: ViewPager2
+
+  private var shouldShowFullScreen = false
+  private var initialParentHeight = 0
 
   private val storyViewerPageViewModel: StoryViewerPageViewModel by viewModels(
     ownerProducer = { requireParentFragment() }
@@ -77,7 +90,7 @@ class StoryViewsAndRepliesDialogFragment : FixedRoundedCornerBottomSheetDialogFr
     val tabs: TabLayout = view.findViewById(R.id.tab_layout)
 
     ViewCompat.setNestedScrollingEnabled(tabs, false)
-    pager.adapter = StoryViewsAndRepliesPagerAdapter(this, storyId, groupRecipientId)
+    pager.adapter = StoryViewsAndRepliesPagerAdapter(this, storyId, groupRecipientId, isFromNotification, groupReplyStartPosition)
     pager.setCurrentItem(startPageIndex, false)
 
     TabLayoutMediator(tabs, pager) { tab, position ->
@@ -88,6 +101,27 @@ class StoryViewsAndRepliesDialogFragment : FixedRoundedCornerBottomSheetDialogFr
     }.attach()
 
     lifecycleDisposable.bindTo(viewLifecycleOwner)
+
+    view.viewTreeObserver.addOnGlobalLayoutListener {
+      val parentHeight = requireCoordinatorLayout().height
+      val desiredHeight = (resources.displayMetrics.heightPixels * 0.6f).roundToInt()
+
+      if (initialParentHeight == 0) {
+        initialParentHeight = parentHeight
+      }
+
+      val targetHeight = when {
+        parentHeight == 0 -> desiredHeight
+        shouldShowFullScreen || parentHeight != initialParentHeight -> parentHeight
+        else -> min(parentHeight, desiredHeight)
+      }
+
+      if (view.height != targetHeight) {
+        view.updateLayoutParams {
+          height = targetHeight
+        }
+      }
+    }
   }
 
   override fun onResume() {
@@ -108,6 +142,11 @@ class StoryViewsAndRepliesDialogFragment : FixedRoundedCornerBottomSheetDialogFr
   override fun onStartDirectReply(recipientId: RecipientId) {
     dismiss()
     storyViewerPageViewModel.startDirectReply(storyId, recipientId)
+  }
+
+  override fun requestFullScreen(fullscreen: Boolean) {
+    shouldShowFullScreen = fullscreen
+    requireView().invalidate()
   }
 
   private inner class PageChangeCallback : ViewPager2.OnPageChangeCallback() {
@@ -135,13 +174,17 @@ class StoryViewsAndRepliesDialogFragment : FixedRoundedCornerBottomSheetDialogFr
     private const val ARG_STORY_ID = "arg.story.id"
     private const val ARG_START_PAGE = "arg.start.page"
     private const val ARG_GROUP_RECIPIENT_ID = "arg.group.recipient.id"
+    private const val ARG_IS_FROM_NOTIFICATION = "is_from_notification"
+    private const val ARG_GROUP_REPLY_START_POSITION = "group_reply_start_position"
 
-    fun create(storyId: Long, groupRecipientId: RecipientId, startPage: StartPage): DialogFragment {
+    fun create(storyId: Long, groupRecipientId: RecipientId, startPage: StartPage, isFromNotification: Boolean, groupReplyStartPosition: Int): DialogFragment {
       return StoryViewsAndRepliesDialogFragment().apply {
         arguments = Bundle().apply {
           putLong(ARG_STORY_ID, storyId)
           putInt(ARG_START_PAGE, startPage.index)
           putParcelable(ARG_GROUP_RECIPIENT_ID, groupRecipientId)
+          putBoolean(ARG_IS_FROM_NOTIFICATION, isFromNotification)
+          putInt(ARG_GROUP_REPLY_START_POSITION, groupReplyStartPosition)
         }
       }
     }

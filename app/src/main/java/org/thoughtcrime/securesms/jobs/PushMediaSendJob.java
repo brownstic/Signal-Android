@@ -211,6 +211,7 @@ public class PushMediaSendJob extends PushSendJob {
       Optional<SignalServiceDataMessage.Sticker> sticker             = getStickerFor(message);
       List<SharedContact>                        sharedContacts      = getSharedContactsFor(message);
       List<SignalServicePreview>                 previews            = getPreviewsFor(message);
+      SignalServiceDataMessage.GiftBadge         giftBadge           = getGiftBadgeFor(message);
       SignalServiceDataMessage.Builder           mediaMessageBuilder = SignalServiceDataMessage.newBuilder()
                                                                                                .withBody(message.getBody())
                                                                                                .withAttachments(serviceAttachments)
@@ -221,13 +222,15 @@ public class PushMediaSendJob extends PushSendJob {
                                                                                                .withSticker(sticker.orElse(null))
                                                                                                .withSharedContacts(sharedContacts)
                                                                                                .withPreviews(previews)
+                                                                                               .withGiftBadge(giftBadge)
                                                                                                .asExpirationUpdate(message.isExpirationUpdate());
 
       if (message.getParentStoryId() != null) {
         try {
-          MessageRecord storyRecord = SignalDatabase.mms().getMessageRecord(message.getParentStoryId().asMessageId().getId());
+          MessageRecord storyRecord    = SignalDatabase.mms().getMessageRecord(message.getParentStoryId().asMessageId().getId());
+          Recipient     storyRecipient = storyRecord.isOutgoing() ? Recipient.self() : storyRecord.getRecipient();
 
-          SignalServiceDataMessage.StoryContext storyContext = new SignalServiceDataMessage.StoryContext(address.getServiceId(), storyRecord.getDateSent());
+          SignalServiceDataMessage.StoryContext storyContext = new SignalServiceDataMessage.StoryContext(storyRecipient.requireServiceId(), storyRecord.getDateSent());
           mediaMessageBuilder.withStoryContext(storyContext);
 
           Optional<SignalServiceDataMessage.Reaction> reaction = getStoryReactionFor(message, storyContext);
@@ -236,12 +239,14 @@ public class PushMediaSendJob extends PushSendJob {
             mediaMessageBuilder.withBody(null);
           }
         } catch (NoSuchMessageException e) {
-          // The story has probably expired
-          // TODO [stories] check what should happen in this case
           throw new UndeliverableMessageException(e);
         }
       } else {
         mediaMessageBuilder.withQuote(getQuoteFor(message).orElse(null));
+      }
+
+      if (message.getGiftBadge() != null) {
+        mediaMessageBuilder.withBody(null);
       }
 
       SignalServiceDataMessage mediaMessage = mediaMessageBuilder.build();

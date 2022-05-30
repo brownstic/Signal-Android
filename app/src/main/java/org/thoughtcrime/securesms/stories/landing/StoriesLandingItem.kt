@@ -1,15 +1,20 @@
 package org.thoughtcrime.securesms.stories.landing
 
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.avatar.view.AvatarView
 import org.thoughtcrime.securesms.badges.BadgeImageView
-import org.thoughtcrime.securesms.components.ThumbnailView
-import org.thoughtcrime.securesms.components.settings.PreferenceModel
 import org.thoughtcrime.securesms.database.model.MediaMmsMessageRecord
+import org.thoughtcrime.securesms.mms.DecryptableStreamUriLoader
 import org.thoughtcrime.securesms.mms.GlideApp
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.stories.StoryTextPostModel
@@ -18,6 +23,7 @@ import org.thoughtcrime.securesms.util.DateUtils
 import org.thoughtcrime.securesms.util.SpanUtil
 import org.thoughtcrime.securesms.util.adapter.mapping.LayoutFactory
 import org.thoughtcrime.securesms.util.adapter.mapping.MappingAdapter
+import org.thoughtcrime.securesms.util.adapter.mapping.MappingModel
 import org.thoughtcrime.securesms.util.adapter.mapping.MappingViewHolder
 import org.thoughtcrime.securesms.util.visible
 import java.util.Locale
@@ -42,7 +48,7 @@ object StoriesLandingItem {
     val onGoToChat: (Model) -> Unit,
     val onSave: (Model) -> Unit,
     val onDeleteStory: (Model) -> Unit
-  ) : PreferenceModel<Model>() {
+  ) : MappingModel<Model> {
     override fun areItemsTheSame(newItem: Model): Boolean {
       return data.storyRecipient.id == newItem.data.storyRecipient.id
     }
@@ -51,7 +57,8 @@ object StoriesLandingItem {
       return data.storyRecipient.hasSameContent(newItem.data.storyRecipient) &&
         data == newItem.data &&
         !hasStatusChange(newItem) &&
-        super.areContentsTheSame(newItem)
+        (data.sendingCount == newItem.data.sendingCount && data.failureCount == newItem.data.failureCount) &&
+        data.storyViewState == newItem.data.storyViewState
     }
 
     override fun getChangePayload(newItem: Model): Any? {
@@ -80,10 +87,14 @@ object StoriesLandingItem {
 
     private val avatarView: AvatarView = itemView.findViewById(R.id.avatar)
     private val badgeView: BadgeImageView = itemView.findViewById(R.id.badge)
-    private val storyPreview: ThumbnailView = itemView.findViewById<ThumbnailView>(R.id.story).apply {
+    private val storyPreview: ImageView = itemView.findViewById<ImageView>(R.id.story).apply {
       isClickable = false
     }
-    private val storyMulti: ThumbnailView = itemView.findViewById<ThumbnailView>(R.id.story_multi).apply {
+    private val storyBlur: ImageView = itemView.findViewById<ImageView>(R.id.story_blur).apply {
+      isClickable = false
+    }
+    private val storyOutline: ImageView = itemView.findViewById(R.id.story_outline)
+    private val storyMulti: ImageView = itemView.findViewById<ImageView>(R.id.story_multi).apply {
       isClickable = false
     }
     private val sender: TextView = itemView.findViewById(R.id.sender)
@@ -112,31 +123,65 @@ object StoriesLandingItem {
 
       avatarView.setStoryRingFromState(model.data.storyViewState)
 
+      val thumbnail = record.slideDeck.thumbnailSlide?.uri
+      val blur = record.slideDeck.thumbnailSlide?.placeholderBlur
+
+      clearGlide()
+      storyBlur.visible = blur != null
+      if (blur != null) {
+        GlideApp.with(storyBlur).load(blur).into(storyBlur)
+      }
+
       @Suppress("CascadeIf")
       if (record.storyType.isTextStory) {
-        storyPreview.setImageResource(GlideApp.with(storyPreview), StoryTextPostModel.parseFrom(record), 0, 0)
-      } else if (record.slideDeck.thumbnailSlide != null) {
-        storyPreview.setImageResource(GlideApp.with(storyPreview), record.slideDeck.thumbnailSlide!!, false, true)
-      } else {
-        storyPreview.clear(GlideApp.with(storyPreview))
+        storyBlur.visible = false
+        val storyTextPostModel = StoryTextPostModel.parseFrom(record)
+        GlideApp.with(storyPreview)
+          .load(storyTextPostModel)
+          .placeholder(storyTextPostModel.getPlaceholder())
+          .centerCrop()
+          .dontAnimate()
+          .into(storyPreview)
+      } else if (thumbnail != null) {
+        storyBlur.visible = blur != null
+        GlideApp.with(storyPreview)
+          .load(DecryptableStreamUriLoader.DecryptableUri(thumbnail))
+          .addListener(HideBlurAfterLoadListener())
+          .centerCrop()
+          .dontAnimate()
+          .into(storyPreview)
       }
 
       if (model.data.secondaryStory != null) {
         val secondaryRecord = model.data.secondaryStory.messageRecord as MediaMmsMessageRecord
+        val secondaryThumb = secondaryRecord.slideDeck.thumbnailSlide?.uri
+        storyOutline.setBackgroundColor(ContextCompat.getColor(context, R.color.signal_background_primary))
 
         @Suppress("CascadeIf")
         if (secondaryRecord.storyType.isTextStory) {
-          storyMulti.setImageResource(GlideApp.with(storyPreview), StoryTextPostModel.parseFrom(secondaryRecord), 0, 0)
+          val storyTextPostModel = StoryTextPostModel.parseFrom(secondaryRecord)
+          GlideApp.with(storyMulti)
+            .load(storyTextPostModel)
+            .placeholder(storyTextPostModel.getPlaceholder())
+            .centerCrop()
+            .dontAnimate()
+            .into(storyMulti)
           storyMulti.visible = true
-        } else if (secondaryRecord.slideDeck.thumbnailSlide != null) {
-          storyMulti.setImageResource(GlideApp.with(storyPreview), secondaryRecord.slideDeck.thumbnailSlide!!, false, true)
+        } else if (secondaryThumb != null) {
+          GlideApp.with(storyMulti)
+            .load(DecryptableStreamUriLoader.DecryptableUri(secondaryThumb))
+            .centerCrop()
+            .dontAnimate()
+            .into(storyMulti)
           storyMulti.visible = true
         } else {
-          storyMulti.clear(GlideApp.with(storyPreview))
+          storyOutline.setBackgroundColor(Color.TRANSPARENT)
+          GlideApp.with(storyMulti).clear(storyMulti)
           storyMulti.visible = false
         }
       } else {
-        storyMulti.clear(GlideApp.with(storyPreview))
+        storyOutline.setBackgroundColor(Color.TRANSPARENT)
+        GlideApp.with(storyMulti).clear(storyMulti)
         storyMulti.visible = false
       }
 
@@ -147,6 +192,12 @@ object StoriesLandingItem {
       }
 
       icon.visible = model.data.hasReplies || model.data.hasRepliesFromSelf
+      icon.setImageResource(
+        when {
+          model.data.hasReplies -> R.drawable.ic_messages_solid_20
+          else -> R.drawable.ic_reply_24_solid_tinted
+        }
+      )
 
       listOf(avatarView, storyPreview, storyMulti, sender, date, icon).forEach {
         it.alpha = if (model.data.isHidden) 0.5f else 1f
@@ -154,12 +205,17 @@ object StoriesLandingItem {
     }
 
     private fun presentDateOrStatus(model: Model) {
-      if (model.data.primaryStory.messageRecord.isOutgoing && (model.data.primaryStory.messageRecord.isPending || model.data.primaryStory.messageRecord.isMediaPending)) {
-        errorIndicator.visible = false
-        date.setText(R.string.StoriesLandingItem__sending)
-      } else if (model.data.primaryStory.messageRecord.isOutgoing && model.data.primaryStory.messageRecord.isFailed) {
+      if (model.data.sendingCount > 0 || (model.data.primaryStory.messageRecord.isOutgoing && (model.data.primaryStory.messageRecord.isPending || model.data.primaryStory.messageRecord.isMediaPending))) {
+        errorIndicator.visible = model.data.failureCount > 0L
+        if (model.data.sendingCount > 1) {
+          date.text = context.getString(R.string.StoriesLandingItem__sending_d, model.data.sendingCount)
+        } else {
+          date.setText(R.string.StoriesLandingItem__sending)
+        }
+      } else if (model.data.failureCount > 0 || (model.data.primaryStory.messageRecord.isOutgoing && model.data.primaryStory.messageRecord.isFailed)) {
         errorIndicator.visible = true
-        date.text = SpanUtil.color(ContextCompat.getColor(context, R.color.signal_alert_primary), context.getString(R.string.StoriesLandingItem__couldnt_send))
+        val message = if (model.data.primaryStory.messageRecord.isIdentityMismatchFailure) R.string.StoriesLandingItem__partially_sent else R.string.StoriesLandingItem__send_failed
+        date.text = SpanUtil.color(ContextCompat.getColor(context, R.color.signal_alert_primary), context.getString(message))
       } else {
         errorIndicator.visible = false
         date.text = DateUtils.getBriefRelativeTimeSpanString(context, Locale.getDefault(), model.data.dateInMilliseconds)
@@ -167,7 +223,9 @@ object StoriesLandingItem {
     }
 
     private fun setUpClickListeners(model: Model) {
-      itemView.setOnClickListener { model.onRowClick(model, storyPreview) }
+      itemView.setOnClickListener {
+        model.onRowClick(model, storyPreview)
+      }
 
       if (model.data.storyRecipient.isMyStory) {
         itemView.setOnLongClickListener(null)
@@ -198,6 +256,20 @@ object StoriesLandingItem {
     private fun displayContext(model: Model) {
       itemView.isSelected = true
       StoryContextMenu.show(context, itemView, model) { itemView.isSelected = false }
+    }
+
+    private fun clearGlide() {
+      GlideApp.with(storyPreview).clear(storyPreview)
+      GlideApp.with(storyBlur).clear(storyBlur)
+    }
+
+    private inner class HideBlurAfterLoadListener : RequestListener<Drawable> {
+      override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean = false
+
+      override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+        storyBlur.visible = false
+        return false
+      }
     }
   }
 }

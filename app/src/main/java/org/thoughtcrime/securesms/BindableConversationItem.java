@@ -60,6 +60,10 @@ public interface BindableConversationItem extends Unbindable, GiphyMp4Playable, 
     // Intentionally Blank.
   }
 
+  default void updateSelectedState() {
+    // Intentionall Blank.
+  }
+
   interface EventListener {
     void onQuoteClicked(MmsMessageRecord messageRecord);
     void onLinkPreviewClicked(@NonNull LinkPreview linkPreview);
@@ -95,8 +99,12 @@ public interface BindableConversationItem extends Unbindable, GiphyMp4Playable, 
     void onCallToAction(@NonNull String action);
     void onDonateClicked();
     void onBlockJoinRequest(@NonNull Recipient recipient);
+    void onRecipientNameClicked(@NonNull RecipientId target);
 
     /** @return true if handled, false if you want to let the normal url handling continue */
     boolean onUrlClicked(@NonNull String url);
+
+    void onViewGiftBadgeClicked(@NonNull MessageRecord messageRecord);
+    void onGiftBadgeRevealed(@NonNull MessageRecord messageRecord);
   }
 }

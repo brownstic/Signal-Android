@@ -32,6 +32,8 @@ import com.google.protobuf.ByteString;
 
 import net.zetetic.database.sqlcipher.SQLiteStatement;
 
+import org.signal.core.util.CursorUtil;
+import org.signal.core.util.SqlUtil;
 import org.signal.core.util.logging.Log;
 import org.signal.libsignal.protocol.util.Pair;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
@@ -40,7 +42,9 @@ import org.thoughtcrime.securesms.database.documents.NetworkFailure;
 import org.thoughtcrime.securesms.database.model.GroupCallUpdateDetailsUtil;
 import org.thoughtcrime.securesms.database.model.MessageId;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
+import org.thoughtcrime.securesms.database.model.ParentStoryId;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
+import org.thoughtcrime.securesms.database.model.StoryResult;
 import org.thoughtcrime.securesms.database.model.StoryViewState;
 import org.thoughtcrime.securesms.database.model.databaseprotos.GroupCallUpdateDetails;
 import org.thoughtcrime.securesms.database.model.databaseprotos.ProfileChangeDetails;
@@ -58,9 +62,7 @@ import org.thoughtcrime.securesms.sms.IncomingGroupUpdateMessage;
 import org.thoughtcrime.securesms.sms.IncomingTextMessage;
 import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.Base64;
-import org.signal.core.util.CursorUtil;
 import org.thoughtcrime.securesms.util.JsonUtils;
-import org.signal.core.util.SqlUtil;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 
@@ -485,7 +487,7 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   @Override
-  public @NonNull Set<MessageUpdate> incrementReceiptCount(SyncMessageId messageId, long timestamp, @NonNull ReceiptType receiptType) {
+  public @NonNull Set<MessageUpdate> incrementReceiptCount(SyncMessageId messageId, long timestamp, @NonNull ReceiptType receiptType, boolean storiesOnly) {
     if (receiptType == ReceiptType.VIEWED) {
       return Collections.emptySet();
     }
@@ -654,6 +656,11 @@ public class SmsDatabase extends MessageDatabase {
   @Override
   public @NonNull List<MarkedMessageInfo> setIncomingMessagesViewed(@NonNull List<Long> messageIds) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public @NonNull List<MarkedMessageInfo> setOutgoingGiftsRevealed(@NonNull List<Long> messageIds) {
+    throw new UnsupportedOperationException();
   }
 
   private InsertResult updateMessageBodyAndType(long messageId, String body, long maskOff, long maskOn) {
@@ -1147,6 +1154,7 @@ public class SmsDatabase extends MessageDatabase {
                      message.isIdentityVerified() ||
                      message.isIdentityDefault()  ||
                      message.isJustAGroupLeave();
+
     boolean unread = !silent && (Util.isDefaultSmsProvider(context) ||
                                  message.isSecureMessage()          ||
                                  message.isGroup()                  ||
@@ -1400,17 +1408,21 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   @Override
-  public @NonNull MessageDatabase.Reader getAllStories() {
+  public @NonNull MessageDatabase.Reader getAllOutgoingStoriesAt(long sentTimestamp) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public @NonNull List<RecipientId> getAllStoriesRecipientsList() {
+  public @NonNull List<StoryResult> getOrderedStoryRecipientsAndIds() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public @NonNull MessageDatabase.Reader getAllStoriesFor(@NonNull RecipientId recipientId) {
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean isOutgoingStoryAlreadyInDatabase(@NonNull RecipientId recipientId, long sentTimestamp) {
     throw new UnsupportedOperationException();
   }
 
@@ -1425,6 +1437,11 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   @Override
+  public @NonNull List<RecipientId>  getUnreadStoryThreadRecipientIds() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public boolean containsStories(long threadId) {
     throw new UnsupportedOperationException();
   }
@@ -1435,12 +1452,12 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   @Override
-  public @NonNull Cursor getStoryReplies(long parentStoryId) {
+  public boolean hasSelfReplyInGroupStory(long parentStoryId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public long getUnreadStoryCount() {
+  public @NonNull Cursor getStoryReplies(long parentStoryId) {
     throw new UnsupportedOperationException();
   }
 
@@ -1455,7 +1472,32 @@ public class SmsDatabase extends MessageDatabase {
   }
 
   @Override
+  public void updateViewedStories(@NonNull Set<SyncMessageId> syncMessageIds) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public int deleteStoriesOlderThan(long timestamp) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull MessageDatabase.Reader getUnreadStories(@NonNull RecipientId recipientId, int limit) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @Nullable ParentStoryId.GroupReply getParentStoryIdForGroupReply(long messageId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @NonNull List<MarkedMessageInfo> setGroupStoryMessagesReadSince(long threadId, long groupStoryId, long sinceTimestamp) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void deleteGroupStoryReplies(long parentStoryId) {
     throw new UnsupportedOperationException();
   }
 
@@ -1686,6 +1728,21 @@ public class SmsDatabase extends MessageDatabase {
 
   @Override
   public void markIncomingNotificationReceived(long threadId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void markGiftRedemptionCompleted(long messageId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void markGiftRedemptionStarted(long messageId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void markGiftRedemptionFailed(long messageId) {
     throw new UnsupportedOperationException();
   }
 

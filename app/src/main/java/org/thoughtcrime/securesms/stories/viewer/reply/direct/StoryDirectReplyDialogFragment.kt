@@ -38,6 +38,8 @@ class StoryDirectReplyDialogFragment :
   ReactWithAnyEmojiBottomSheetDialogFragment.Callback {
 
   private val lifecycleDisposable = LifecycleDisposable()
+  private var isRequestingReactWithAny = false
+  private var isReactClosingAfterSend = false
 
   private val viewModel: StoryDirectReplyViewModel by viewModels(
     factoryProducer = {
@@ -72,7 +74,7 @@ class StoryDirectReplyDialogFragment :
         lifecycleDisposable += viewModel.sendReply(composer.consumeInput().first)
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe {
-            Toast.makeText(requireContext(), R.string.StoryDirectReplyDialogFragment__reply_sent, Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), R.string.StoryDirectReplyDialogFragment__sending_reply, Toast.LENGTH_LONG).show()
             dismissAllowingStateLoss()
           }
       }
@@ -92,6 +94,7 @@ class StoryDirectReplyDialogFragment :
 
               override fun onOpenReactionPicker() {
                 dialog.dismiss()
+                isRequestingReactWithAny = true
                 ReactWithAnyEmojiBottomSheetDialogFragment.createForStory().show(childFragmentManager, null)
               }
             }
@@ -104,13 +107,13 @@ class StoryDirectReplyDialogFragment :
         keyboardPagerViewModel.setOnlyPage(KeyboardPage.EMOJI)
         mediaKeyboard.setFragmentManager(childFragmentManager)
       }
-
-      override fun onHeightChanged(height: Int) = Unit
     }
 
     viewModel.state.observe(viewLifecycleOwner) { state ->
-      if (state.recipient != null) {
-        composer.displayPrivacyChrome(state.recipient)
+      if (state.groupDirectReplyRecipient != null) {
+        composer.displayPrivacyChrome(state.groupDirectReplyRecipient)
+      } else if (state.storyRecord != null) {
+        composer.displayPrivacyChrome(state.storyRecord.recipient)
       }
 
       if (state.storyRecord != null) {
@@ -122,13 +125,13 @@ class StoryDirectReplyDialogFragment :
   override fun onResume() {
     super.onResume()
 
-    ViewUtil.focusAndShowKeyboard(composer)
+    ViewUtil.focusAndShowKeyboard(composer.input)
   }
 
   override fun onPause() {
     super.onPause()
 
-    ViewUtil.hideKeyboard(requireContext(), composer)
+    ViewUtil.hideKeyboard(requireContext(), composer.input)
   }
 
   override fun openEmojiSearch() {
@@ -136,7 +139,7 @@ class StoryDirectReplyDialogFragment :
   }
 
   override fun onKeyboardHidden() {
-    if (!composer.isRequestingEmojiDrawer) {
+    if (!composer.isRequestingEmojiDrawer && !isRequestingReactWithAny) {
       super.onKeyboardHidden()
     }
   }
@@ -172,10 +175,16 @@ class StoryDirectReplyDialogFragment :
 
   override fun onKeyEvent(keyEvent: KeyEvent?) = Unit
 
-  override fun onReactWithAnyEmojiDialogDismissed() = Unit
+  override fun onReactWithAnyEmojiDialogDismissed() {
+    isRequestingReactWithAny = false
+    if (!isReactClosingAfterSend) {
+      ViewUtil.focusAndShowKeyboard(composer.input)
+    }
+  }
 
   override fun onReactWithAnyEmojiSelected(emoji: String) {
     sendReaction(emoji)
+    isReactClosingAfterSend = true
   }
 
   private fun sendReaction(emoji: String) {
@@ -188,7 +197,6 @@ class StoryDirectReplyDialogFragment :
             putString(REQUEST_EMOJI, emoji)
           }
         )
-        Toast.makeText(requireContext(), R.string.StoryDirectReplyDialogFragment__reaction_sent, Toast.LENGTH_LONG).show()
         dismissAllowingStateLoss()
       }
   }

@@ -8,6 +8,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import org.thoughtcrime.securesms.database.model.MessageRecord
 import org.thoughtcrime.securesms.recipients.Recipient
+import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.util.livedata.Store
 
 class StoriesLandingViewModel(private val storiesLandingRepository: StoriesLandingRepository) : ViewModel() {
@@ -15,6 +16,7 @@ class StoriesLandingViewModel(private val storiesLandingRepository: StoriesLandi
   private val disposables = CompositeDisposable()
 
   val state: LiveData<StoriesLandingState> = store.stateLiveData
+  var isTransitioningToAnotherScreen: Boolean = false
 
   init {
     disposables += storiesLandingRepository.getStories().subscribe { stories ->
@@ -44,8 +46,12 @@ class StoriesLandingViewModel(private val storiesLandingRepository: StoriesLandi
     store.update { it.copy(isHiddenContentVisible = isExpanded) }
   }
 
+  fun getRecipientIds(hidden: Boolean): List<RecipientId> {
+    return store.state.storiesLandingItems.filter { it.isHidden == hidden }.map { it.storyRecipient.id }
+  }
+
   class Factory(private val storiesLandingRepository: StoriesLandingRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
       return modelClass.cast(StoriesLandingViewModel(storiesLandingRepository)) as T
     }
   }

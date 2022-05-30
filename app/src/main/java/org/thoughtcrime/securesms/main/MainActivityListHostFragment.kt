@@ -14,7 +14,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.Navigator
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
+import org.signal.core.util.concurrent.SimpleTask
 import org.signal.core.util.logging.Log
 import org.thoughtcrime.securesms.MainActivity
 import org.thoughtcrime.securesms.R
@@ -36,7 +39,8 @@ import org.thoughtcrime.securesms.util.BottomSheetUtil
 import org.thoughtcrime.securesms.util.TopToastPopup
 import org.thoughtcrime.securesms.util.TopToastPopup.Companion.show
 import org.thoughtcrime.securesms.util.Util
-import org.thoughtcrime.securesms.util.concurrent.SimpleTask
+import org.thoughtcrime.securesms.util.runHideAnimation
+import org.thoughtcrime.securesms.util.runRevealAnimation
 import org.thoughtcrime.securesms.util.views.Stub
 import org.thoughtcrime.securesms.util.visible
 import org.whispersystems.signalservice.api.websocket.WebSocketConnectionState
@@ -69,7 +73,7 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     _toolbar = view.findViewById(R.id.toolbar)
-    _basicToolbar = Stub(view.findViewById(R.id.toolbar_basic))
+    _basicToolbar = Stub(view.findViewById(R.id.toolbar_basic_stub))
     notificationProfileStatus = view.findViewById(R.id.conversation_list_notification_profile_status)
     proxyStatus = view.findViewById(R.id.conversation_list_proxy_status)
     _searchAction = view.findViewById(R.id.search_action)
@@ -87,17 +91,9 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
       val controller: NavController = requireView().findViewById<View>(R.id.fragment_container).findNavController()
       when (controller.currentDestination?.id) {
         R.id.conversationListFragment -> goToStateFromConversationList(state, controller)
-        R.id.conversationListArchiveFragment -> goToStateFromConversationArchiveList(state, controller)
+        R.id.conversationListArchiveFragment -> Unit
         R.id.storiesLandingFragment -> goToStateFromStories(state, controller)
       }
-    }
-  }
-
-  private fun goToStateFromConversationArchiveList(state: ConversationListTabsState, navController: NavController) {
-    if (state.tab == ConversationListTab.CHATS) {
-      return
-    } else {
-      navController.navigate(R.id.action_conversationListArchiveFragment_to_storiesLandingFragment)
     }
   }
 
@@ -105,7 +101,24 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
     if (state.tab == ConversationListTab.CHATS) {
       return
     } else {
-      navController.navigate(R.id.action_conversationListFragment_to_storiesLandingFragment)
+      val cameraFab = requireView().findViewById<View>(R.id.camera_fab_new)
+      val newConvoFab = requireView().findViewById<View>(R.id.fab_new)
+
+      val extras: Navigator.Extras? = if (cameraFab == null || newConvoFab == null) {
+        null
+      } else {
+        FragmentNavigatorExtras(
+          cameraFab to "camera_fab",
+          newConvoFab to "new_convo_fab"
+        )
+      }
+
+      navController.navigate(
+        R.id.action_conversationListFragment_to_storiesLandingFragment,
+        null,
+        null,
+        extras
+      )
     }
   }
 
@@ -136,16 +149,21 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
   }
 
   private fun presentToolbarForConversationListFragment() {
+    if (_basicToolbar.resolved() && _basicToolbar.get().visible) {
+      _toolbar.runRevealAnimation(R.anim.slide_from_start)
+    }
+
     _toolbar.visible = true
     _searchAction.visible = true
-    if (_basicToolbar.resolved()) {
-      _basicToolbar.get().visible = false
+
+    if (_basicToolbar.resolved() && _basicToolbar.get().visible) {
+      _basicToolbar.get().runHideAnimation(R.anim.slide_to_end)
     }
   }
 
   private fun presentToolbarForConversationListArchiveFragment() {
-    _toolbar.visible = false
-    _basicToolbar.get().visible = true
+    _toolbar.runHideAnimation(R.anim.slide_to_start)
+    _basicToolbar.get().runRevealAnimation(R.anim.slide_from_end)
   }
 
   private fun presentToolbarForStoriesLandingFragment() {
@@ -187,6 +205,14 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
 
   override fun onSearchClosed() {
     conversationListTabsViewModel.onSearchClosed()
+  }
+
+  override fun onMultiSelectStarted() {
+    conversationListTabsViewModel.onMultiSelectStarted()
+  }
+
+  override fun onMultiSelectFinished() {
+    conversationListTabsViewModel.onMultiSelectFinished()
   }
 
   private fun initializeProfileIcon(recipient: Recipient) {
@@ -273,12 +299,15 @@ class MainActivityListHostFragment : Fragment(R.layout.main_activity_list_host_f
     override fun onDestinationChanged(controller: NavController, destination: NavDestination, arguments: Bundle?) {
       when (destination.id) {
         R.id.conversationListFragment -> {
+          conversationListTabsViewModel.isShowingArchived(false)
           presentToolbarForConversationListFragment()
         }
         R.id.conversationListArchiveFragment -> {
+          conversationListTabsViewModel.isShowingArchived(true)
           presentToolbarForConversationListArchiveFragment()
         }
         R.id.storiesLandingFragment -> {
+          conversationListTabsViewModel.isShowingArchived(false)
           presentToolbarForStoriesLandingFragment()
         }
       }

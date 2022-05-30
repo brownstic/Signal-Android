@@ -16,12 +16,18 @@ data class StoriesLandingItemData(
   val secondaryStory: ConversationMessage?,
   val storyRecipient: Recipient,
   val individualRecipient: Recipient = primaryStory.messageRecord.individualRecipient,
-  val dateInMilliseconds: Long = primaryStory.messageRecord.dateSent
+  val dateInMilliseconds: Long = primaryStory.messageRecord.dateSent,
+  val sendingCount: Long = 0,
+  val failureCount: Long = 0
 ) : Comparable<StoriesLandingItemData> {
   override fun compareTo(other: StoriesLandingItemData): Int {
     return if (storyRecipient.isMyStory && !other.storyRecipient.isMyStory) {
       -1
     } else if (!storyRecipient.isMyStory && other.storyRecipient.isMyStory) {
+      1
+    } else if (storyViewState == StoryViewState.UNVIEWED && other.storyViewState != StoryViewState.UNVIEWED) {
+      -1
+    } else if (storyViewState != StoryViewState.UNVIEWED && other.storyViewState == StoryViewState.UNVIEWED) {
       1
     } else {
       -dateInMilliseconds.compareTo(other.dateInMilliseconds)

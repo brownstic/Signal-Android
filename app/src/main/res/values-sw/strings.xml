@@ -88,7 +88,9 @@
   <string name="BlockUnblockDialog_you_will_no_longer_receive_messages_or_updates">Hutapokea tena ujumbe au arifa kutoka kwa kikundi hiki, na washiriki hawataweza kukuongeza kwenye kikundi hiki tena.</string>
   <string name="BlockUnblockDialog_group_members_wont_be_able_to_add_you">Washiriki wa kikundi hawataweza kukuongeza kwenye kikundi hiki tena.</string>
   <string name="BlockUnblockDialog_group_members_will_be_able_to_add_you">Washiriki wa kikundi wataweza kukuongeza kwenye kundi hili tena.</string>
+  <!--Text that is shown when unblocking a Signal contact-->
   <string name="BlockUnblockDialog_you_will_be_able_to_call_and_message_each_other">Mtaweza kutumiana ujumbe na kupigiana simu, na jina na picha yako itashirikiwa nao.</string>
+  <!--Text that is shown when unblocking an SMS contact-->
   <string name="BlockUnblockDialog_blocked_people_wont_be_able_to_call_you_or_send_you_messages">Watu waliozuiwa hawataweza kukupigia simu wala kukutumia ujumbe.</string>
   <!--Message shown on block dialog when blocking the Signal release notes recipient-->
   <!--Message shown on unblock dialog when unblocking the Signal release notes recipient-->
@@ -435,10 +437,6 @@
     <item quantity="other"> Kuna maombi %d ya wanachama yanayosubiri.</item>
   </plurals>
   <string name="PendingGroupJoinRequestsReminder_view">Tazama</string>
-  <!--ShareActivity-->
-  <string name="ShareActivity_share_with">Shiriki na</string>
-  <string name="ShareActivity_multiple_attachments_are_only_supported">Viambatisho vingi hutumika tu kwa picha na video</string>
-  <string name="ShareActivity_you_do_not_have_permission_to_send_to_this_group">Huna ruhusa ya kutuma kwenye kikundi hiki</string>
   <!--GcmRefreshJob-->
   <string name="GcmRefreshJob_Permanent_Signal_communication_failure">Muda wote mawasiliano ya Signal yanafeli!</string>
   <string name="GcmRefreshJob_Signal_was_unable_to_register_with_Google_Play_Services">Signal haikuweza kujisajili na Huduma za Google Play. Ujumbe wa Signal na simu zimezimwa, tafadhali jaribu kujiandikisha katika Mipangilio &gt;  Zaidi.</string>
@@ -673,6 +671,7 @@
   <string name="CustomNotificationsDialogFragment__use_custom_notifications">Tumia arifa maalum</string>
   <string name="CustomNotificationsDialogFragment__notification_sound">Taarifa ya sauti</string>
   <string name="CustomNotificationsDialogFragment__vibrate">Tetemesha</string>
+  <!--Button text for customizing notification options-->
   <string name="CustomNotificationsDialogFragment__call_settings">Mpangilio wa kupiga simu</string>
   <string name="CustomNotificationsDialogFragment__ringtone">Mlio wa simu</string>
   <string name="CustomNotificationsDialogFragment__enabled">Imewezeshwa</string>
@@ -1057,7 +1056,9 @@
   <string name="MessageRequestBottomView_block">Zuia</string>
   <string name="MessageRequestBottomView_unblock">Fungua</string>
   <string name="MessageRequestBottomView_do_you_want_to_let_s_message_you_they_wont_know_youve_seen_their_messages_until_you_accept">Ungependa kumruhusu %1$s akutumie ujumbe na ushiriki naye jina na picha yako? Hatajua umeona ujumbe wake hadi utakapokubali.</string>
+  <!--Shown in message request flow. Describes what will happen if you unblock a Signal user-->
   <string name="MessageRequestBottomView_do_you_want_to_let_s_message_you_wont_receive_any_messages_until_you_unblock_them">Ungependa kumruhusu %1$s akutumie ujumbe na ushiriki naye jina na picha yako? Hutapokea ujumbe wowote mpaka uache kumzuia.</string>
+  <!--Shown in message request flow. Describes what will happen if you unblock an SMS user-->
   <string name="MessageRequestBottomView_continue_your_conversation_with_this_group_and_share_your_name_and_photo">Ungependa kuendelea kuzungumza na kikundi hiki na ushiriki jina na picha yako na wanachama wake?</string>
   <string name="MessageRequestBottomView_upgrade_this_group_to_activate_new_features">Boresha kikundi hiki ili uwezeshe huduma mpya kama vile @kutajwa na kuwa na wasimamizi. Wanachama ambao hawajashiriki jina au picha zao katika kikundi hiki wataalikwa kujiunga.</string>
   <string name="MessageRequestBottomView_this_legacy_group_can_no_longer_be_used">Kikundi hiki Kizee hakiwezi tena kutumiwa kwa sababu ni kikubwa mno. Ukubwa wa juu zaidi wa kikundi ni %1$d.</string>
@@ -1073,10 +1074,8 @@
     <item quantity="one">Mwanakikundi %1$d</item>
     <item quantity="other">Wanakikundi %1$d</item>
   </plurals>
-  <plurals name="MessageRequestProfileView_members_and_invited">
-    <item quantity="one">Mwanachama %1$d (+%2$damealikwa)</item>
-    <item quantity="other">Wanachama %1$d (+%2$dwamealikwa)</item>
-  </plurals>
+  <!--Describes the number of members in a group. The string MessageRequestProfileView_invited is nested in the parentheses.-->
+  <!--Describes the number of people invited to a group. Nested inside of the string MessageRequestProfileView_members_and_invited-->
   <plurals name="MessageRequestProfileView_member_of_d_additional_groups">
     <item quantity="one">Kikundi %d cha ziada</item>
     <item quantity="other">Vikundi %dvya ziada</item>
@@ -1195,6 +1194,11 @@ Signal inahitaji ruhusa ya Kamera ili kuskani msimbo wa QR, lakini imekataliwa k
   <string name="WebRtcCallActivity__calling">Unapiga simu…</string>
   <!--Call status shown when an active call was disconnected (e.g., network hiccup) and is trying to reconnect-->
   <string name="WebRtcCallActivity__reconnecting">Inaunganisha upya…</string>
+  <!--Title for dialog warning about lacking bluetooth permissions during a call-->
+  <!--Message for dialog warning about lacking bluetooth permissions during a call and references the permission needed by name-->
+  <!--Positive action for bluetooth warning dialog to open settings-->
+  <!--Negative aciton for bluetooth warning dialog to dismiss dialog-->
+  <string name="WebRtcCallActivity__not_now">Sio sasa</string>
   <!--WebRtcCallView-->
   <string name="WebRtcCallView__signal_call">Simu ya Signal</string>
   <string name="WebRtcCallView__signal_video_call">Simu ya Video ya Signal</string>
@@ -1389,6 +1393,9 @@ nambari yako ya simu</string>
   <string name="ThreadRecord_file">Faili</string>
   <string name="ThreadRecord_video">Video</string>
   <string name="ThreadRecord_chat_session_refreshed">Kipindi cha gumzo kimeonyeshwa upya</string>
+  <!--Displayed in the notification when the user is sent a gift-->
+  <!--Displayed in the notification when the user sends a gift-->
+  <!--Displayed in the notification when the user has opened a received gift-->
   <!--UpdateApkReadyListener-->
   <string name="UpdateApkReadyListener_Signal_update">Sasisho ya Signal</string>
   <string name="UpdateApkReadyListener_a_new_version_of_signal_is_available_tap_to_update">Toleo jipya la Signal linapatikana, bonyeza kusasisha</string>
@@ -1519,6 +1526,7 @@ nambari yako ya simu</string>
   <string name="SingleRecipientNotificationBuilder_new_message">Ujumbe mpya</string>
   <string name="SingleRecipientNotificationBuilder_message_request">Ombi la ujumbe</string>
   <string name="SingleRecipientNotificationBuilder_you">Wewe</string>
+  <!--Notification subtext for group stories-->
   <!--ThumbnailView-->
   <string name="ThumbnailView_Play_video_description">Cheza video</string>
   <string name="ThumbnailView_Has_a_caption_description">Ina maelezo mafupi</string>
@@ -1650,6 +1658,7 @@ nambari yako ya simu</string>
   <!--Author formatting for group stories-->
   <!--Label indicating that a quote is for a reply to a story you created-->
   <!--Label indicating that the story being replied to no longer exists-->
+  <!--Label for quoted gift-->
   <!--conversation_fragment-->
   <string name="conversation_fragment__scroll_to_the_bottom_content_description">Biringiza hadi chini</string>
   <!--BubbleOptOutTooltip-->
@@ -1753,6 +1762,8 @@ nambari yako ya simu</string>
   <!--message_recipients_list_item-->
   <string name="message_recipients_list_item__view">Tazama</string>
   <string name="message_recipients_list_item__resend">TUMA TENA</string>
+  <!--Displayed in a toast when user long presses an item in MyStories-->
+  <!--Displayed when there are no outgoing stories-->
   <!--GroupUtil-->
   <plurals name="GroupUtil_joined_the_group">
     <item quantity="one">%1$s  ameingia kikundi.</item>
@@ -1952,6 +1963,7 @@ nambari yako ya simu</string>
   <string name="preferences__help">Msaada</string>
   <string name="preferences__advanced">ya juu</string>
   <string name="preferences__donate_to_signal">Changia Signal</string>
+  <!--Preference label for making one-time donations to Signal-->
   <string name="preferences__privacy">Faragha</string>
   <string name="preferences__mms_user_agent">Wakala wa mtumiaji wa MMS</string>
   <string name="preferences__advanced_mms_access_point_names">Mwongozo wa mpangilio wa MMS</string>
@@ -2777,8 +2789,6 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--MultiShareDialogs-->
   <string name="MultiShareDialogs__failed_to_send_to_some_users">Baadhi ya watumiaji hawajatumiwa</string>
   <string name="MultiShareDialogs__you_can_only_share_with_up_to">Unaweza tu kushiriki hadi gumzo %1$d</string>
-  <!--ShareInterstitialActivity-->
-  <string name="ShareInterstitialActivity__forward_message">Tuma ujumbe </string>
   <!--ChatWallpaperActivity-->
   <string name="ChatWallpaperActivity__chat_wallpaper">Picha ya mandhari ya gumzo</string>
   <!--ChatWallpaperFragment-->
@@ -3031,6 +3041,14 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--ChatColorGradientTool-->
   <string name="ChatColorGradientTool_top_edge_selector">Kiteuzi cha sehemu ya juu</string>
   <string name="ChatColorGradientTool_bottom_edge_selector">Kiteuzi cha sehemu ya chini</string>
+  <!--Title text for prompt to donate. Shown in a popup at the bottom of the chat list.-->
+  <string name="Donate2022Q2Megaphone_donate_to_signal">Changia Signal</string>
+  <!--Body text for prompt to donate. Shown in a popup at the bottom of the chat list.-->
+  <string name="Donate2022Q2Megaphone_signal_is_powered_by_people_like_you">Signal inaendeshwa na watu kama wewe. Changia kila mwezi na upate beji.</string>
+  <!--Button label that brings a user to the donate screen. Shown in a popup at the bottom of the chat list.-->
+  <string name="Donate2022Q2Megaphone_donate">Toa</string>
+  <!--Button label that dismissed a prompt to donate. Shown in a popup at the bottom of the chat list.-->
+  <string name="Donate2022Q2Megaphone_not_now">Sio sasa</string>
   <!--EditReactionsFragment-->
   <string name="EditReactionsFragment__customize_reactions">Badilisha majibu yakufae</string>
   <string name="EditReactionsFragment__tap_to_replace_an_emoji">Gusa ili ubadilishe emoji</string>
@@ -3038,18 +3056,15 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="EditReactionsFragment_save">Hifadhi</string>
   <string name="ChatColorSelectionFragment__auto_matches_the_color_to_the_wallpaper">Rangi otomatiki inafanana na rangi iliyo kwenye picha ya mandhari</string>
   <string name="CustomChatColorCreatorFragment__drag_to_change_the_direction_of_the_gradient">Buruta ubadilishe mwelekeo wa upinde</string>
-  <!--ChatColorsMegaphone-->
-  <string name="ChatColorsMegaphone__new_chat_colors">Rangi Mpya za Gumzo</string>
-  <string name="ChatColorsMegaphone__we_switched_up_chat_colors">Tulibadilisha rangi za gumzo kukupa chaguo zaidi na kuwezesha mazungumzo kuwa rahisi kusoma.</string>
-  <string name="ChatColorsMegaphone__appearance">Muonekano</string>
-  <string name="ChatColorsMegaphone__not_now">Sio sasa</string>
   <!--AddAProfilePhotoMegaphone-->
   <string name="AddAProfilePhotoMegaphone__add_a_profile_photo">Ongeza picha ya wasifu</string>
   <string name="AddAProfilePhotoMegaphone__choose_a_look_and_color">Chagua mwonekano na rangi au ubadilishe herufi zako za kwanza.</string>
   <string name="AddAProfilePhotoMegaphone__not_now">Sio sasa</string>
   <string name="AddAProfilePhotoMegaphone__add_photo">Ongeza picha</string>
   <!--BecomeASustainerMegaphone-->
-  <string name="BecomeASustainerMegaphone__no_thanks">Hapana nashukuru</string>
+  <!--Displayed in the Become a Sustainer megaphone-->
+  <string name="BecomeASustainerMegaphone__not_now">Sio sasa</string>
+  <string name="BecomeASustainerMegaphone__donate">Toa</string>
   <!--KeyboardPagerFragment-->
   <string name="KeyboardPagerFragment_emoji">Emoji</string>
   <string name="KeyboardPagerFragment_open_emoji_search">Fungua utaftaji wa emoji</string>
@@ -3156,8 +3171,12 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--ContactSelectionListItem-->
   <string name="ContactSelectionListItem__sms">Ujumbe wa maneno</string>
   <string name="ContactSelectionListItem__dot_s">· %1$s</string>
+  <!--Displayed in the toolbar when externally sharing text to multiple recipients-->
+  <string name="ShareInterstitialActivity__share">Shiriki</string>
   <!--DSLSettingsToolbar-->
   <string name="DSLSettingsToolbar__navigate_up">Nenda juu</string>
+  <!--Displayed when sharing content via the fragment-->
+  <string name="MultiselectForwardFragment__share_with">Shiriki na</string>
   <!--Media V2-->
   <string name="ImageEditorHud__cancel">Ghairi</string>
   <string name="ImageEditorHud__undo">Ondoa</string>
@@ -3170,10 +3189,24 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="SubscribeFragment__not_now">Sio sasa</string>
   <string name="SubscribeFragment__confirm">Thibitisha</string>
   <string name="SubscribeFragment__update">Sasisha</string>
+  <!--First small text blurb on learn more sheet-->
+  <string name="SubscribeLearnMoreBottomSheetDialogFragment__why_donate">Kwa Nini Uchangie?</string>
   <string name="SubscribeThanksForYourSupportBottomSheetDialogFragment__done">Imekamilika</string>
-  <!--Label for Tax Receipts button-->
+  <!--Button label for creating a monthly donation-->
+  <!--Heading for more area of manage subscriptions page-->
+  <string name="ManageDonationsFragment__more">Zaidi</string>
+  <!--Heading for receipts area of manage subscriptions page-->
+  <!--Heading for my subscription area of manage subscriptions page-->
+  <!--Label for Donation Receipts button-->
+  <!--Preference heading for other ways to donate-->
+  <!--Preference label to launch badge gifting-->
+  <!--Description text in boost sheet-->
   <string name="Boost__enter_custom_amount">Weka Kiasi Maalum</string>
   <!--Displayed on "My Support" screen when user badge failed to be added to their account-->
+  <!--Title of expiry sheet when boost badge falls off profile unexpectedly.-->
+  <!--Displayed in the bottom sheet if a monthly donation badge unexpectedly falls off the user\'s profile-->
+  <!--Displayed in the bottom sheet when a boost badge expires-->
+  <!--Displayed when we do not think the user is a subscriber when their boost expires-->
   <string name="ExpiredBadgeBottomSheetDialogFragment__not_now">Sio sasa</string>
   <!--Copy displayed when badge expires after user inactivity-->
   <!--Copy displayed when badge expires after payment failure-->
@@ -3181,7 +3214,22 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="SubscribeFragment__processing_payment">Tunachakata malipo…</string>
   <!--Displayed in notification when user payment fails to process on Stripe-->
   <!--Displayed on "My Support" screen when user subscription payment method failed.-->
+  <!--Displayed when badge credential couldn\'t be verified-->
+  <!--Displayed when badge credential couldn\'t be verified-->
+  <!--Displayed as title when some generic error happens during gift badge sending-->
+  <!--Displayed as message when some generic error happens during gift badge sending-->
   <string name="NetworkFailure__retry">Jaribu Upya</string>
+  <!--Displayed as a dialog title when the selected recipient for a gift doesn\'t support gifting-->
+  <!--Displayed as a dialog message when the selected recipient for a gift doesn\'t support gifting-->
+  <!--Displayed as a dialog title when the user\'s profile could not be fetched, likely due to lack of internet-->
+  <!--Displayed as a dialog message when the user\'s profile could not be fetched, likely due to lack of internet-->
+  <!--Gift message view title-->
+  <!--Gift message view expiry information-->
+  <!--Gift badge redeem action label-->
+  <!--Gift badge view action label-->
+  <string name="GiftMessageView__view">Tazama</string>
+  <!--Gift badge redeeming action label-->
+  <!--Gift badge redeemed label-->
   <!--Stripe decline code generic_failure-->
   <!--Stripe decline code verify on Google Pay and try again-->
   <!--Stripe decline code learn more action label-->
@@ -3282,11 +3330,6 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="NotificationProfileSelection__until_s">Mpaka %1$s</string>
   <!--Option to view profile details-->
   <!--Descriptor text indicating how long a profile will be on when there is a time component associated with it-->
-  <!--Title for notification profile megaphone-->
-  <!--Description for notification profile megaphone-->
-  <!--Call to action button to create a profile from megaphone-->
-  <!--Button to dismiss notification profile megaphone-->
-  <string name="NotificationProfilesMegaphone__not_now">Sio sasa</string>
   <!--Displayed in a toast when we fail to open the ringtone picker-->
   <!--Description shown for the Signal Release Notes channel-->
   <!--Donation receipts activity title-->
@@ -3294,8 +3337,8 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--Donation receipts all tab label-->
   <string name="DonationReceiptListFragment__all">Zote</string>
   <!--Donation receipts recurring tab label-->
-  <!--Donation receipts one time tab label-->
-  <string name="DonationReceiptListFragment__one_time">Mara moja</string>
+  <!--Donation receipts one-time tab label-->
+  <!--Donation receipts gift tab label-->
   <!--Donation receipts boost row label-->
   <!--Donation receipts details title-->
   <string name="DonationReceiptDetailsFragment__details">Maelezo</string>
@@ -3307,6 +3350,7 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--Donation receipts amount title-->
   <!--Donation receipts thanks-->
   <!--Donation receipt type-->
+  <!--Donation reciepts screen empty state title-->
   <!--region "Stories Tab"-->
   <!--Label for Chats tab in home app screen-->
   <string name="ConversationListTabs__chats">Gumzo</string>
@@ -3323,7 +3367,10 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--Context menu option to go to story chat-->
   <!--Label when a story is pending sending-->
   <string name="StoriesLandingItem__sending">Inatuma…</string>
+  <!--Label when multiple stories are pending sending-->
   <!--Label when a story fails to send-->
+  <string name="StoriesLandingItem__send_failed">Kutuma kumeshindwa</string>
+  <!--Status label when a story fails to send indicating user action to retry-->
   <!--Title of dialog confirming decision to hide a story-->
   <!--Message of dialog confirming decision to hide a story-->
   <!--Positive action of dialog confirming decision to hide a story-->
@@ -3346,6 +3393,7 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="StoryViewerPageFragment__s_to_s">%1$shadi %2$s</string>
   <!--Displayed when viewing a post from another user with no replies-->
   <string name="StoryViewerPageFragment__reply">Jibu</string>
+  <!--Displayed when viewing a group post from another user with no replies-->
   <!--Displayed when a story has no views-->
   <!--Displayed when a story has no replies yet-->
   <!--Displayed for each user that reacted to a story when viewing replies-->
@@ -3360,6 +3408,7 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="StoryGroupReplyItem__delete">Futa</string>
   <!--Story settings page title-->
   <!--Story settings private stories heading-->
+  <!--Note at bottom of story settings regarding who can see private stories.-->
   <!--Option label for creating a new private story-->
   <!--Page title for My Story options-->
   <!--Section heading for story visibility-->
@@ -3406,6 +3455,9 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <!--Dialog message for first time adding something to a story-->
   <!--First time share to story dialog: Positive action to go ahead and add to story-->
   <!--First time share to story dialog: Neutral action to edit who can view "My Story"-->
+  <!--Error message shown when a failure occurs during story send-->
+  <!--Error message dialog button to resend a previously failed story send-->
+  <string name="StoryDialogs__send">Tuma</string>
   <!--Privacy Settings toggle title for stories-->
   <!--Privacy Settings toggle summary for stories-->
   <!--New story viewer selection screen title-->
@@ -3432,19 +3484,58 @@ Funga ufikiaji wa Signal na ufungaji wa Android au alama za vidole</string>
   <string name="StoryGroupReplyFragment__copied_to_clipboard">Imenakiliwa kwenye bodi ya kunakili</string>
   <!--Displayed in story caption when content is longer than 5 lines-->
   <!--Displayed in toast after sending a direct reply-->
-  <!--Displayed in toast after sending a direct reaction-->
   <!--Displayed in the viewer when a story is no longer available-->
   <!--Displayed in the viewer when the network is not available-->
   <!--Displayed in the viewer when network is available but content could not be downloaded-->
+  <!--Toasted when the user externally shares to a text story successfully-->
+  <!--Toasted when the user external share to a text story fails-->
+  <!--Displayed in a dialog to let the user select a given users story-->
+  <!--Displayed in a dialog to let the user select a given users profile photo-->
   <!--Title for a notification at the bottom of the chat list suggesting that the user disable censorship circumvention because the service has become reachable-->
   <!--Body for a notification at the bottom of the chat list suggesting that the user disable censorship circumvention because the service has become reachable-->
   <!--Label for a button to dismiss a notification at the bottom of the chat list suggesting that the user disable censorship circumvention because the service has become reachable-->
   <string name="TurnOffCircumventionMegaphone_no_thanks">Hapana nashukuru</string>
   <!--Label for a button in a notification at the bottom of the chat list to turn off censorship circumvention-->
   <string name="TurnOffCircumventionMegaphone_turn_off">Zima</string>
-  <!--Conversation Item label for reactions to a story-->
+  <!--Conversation Item label for when you react to someone else\'s story-->
+  <!--Conversation Item label for reactions to your story-->
   <!--Conversation Item label for reactions to an unavailable story-->
   <!--endregion-->
   <!--Content description for expand contacts chevron-->
+  <!--Duration and price information-->
+  <!--Tagline for gift row items-->
+  <!--Headline text on start fragment for gifting a badge-->
+  <!--Description text on start fragment for gifting a badge-->
+  <!--Action button label for start fragment for gifting a badge-->
+  <string name="GiftFlowStartFragment__next">Ifuatayo</string>
+  <!--Title text on choose recipient page for badge gifting-->
+  <!--Title text on confirm gift page-->
+  <!--Heading text specifying who the gift will be sent to-->
+  <!--Text explaining that gift will be sent to the chosen recipient-->
+  <!--Text explaining that this gift is a one time donation-->
+  <!--Hint for add message input-->
+  <!--Displayed in the dialog while verifying the chosen recipient-->
+  <!--Title for sheet shown when opening a redeemed gift-->
+  <!--Title for sheet shown when opening a sent gift-->
+  <!--Description for sheet shown when opening a redeemed gift-->
+  <!--Description for sheet shown when opening a sent gift-->
+  <!--Primary action for pending gift sheet to redeem badge now-->
+  <!--Primary action for pending gift sheet to redeem badge later-->
+  <string name="ViewReceivedGiftSheet__not_now">Sio sasa</string>
+  <!--Dialog text while redeeming a gift-->
+  <!--Snackbar text when user presses "not now" on redemption sheet-->
+  <!--Description text in gift thanks sheet-->
+  <!--Expired gift sheet title-->
+  <!--Expired gift sheet top description text-->
+  <!--Expired gift sheet bottom description text-->
+  <!--Expired gift sheet make a monthly donation button-->
+  <!--Expired gift sheet not now button-->
+  <string name="ExpiredGiftSheetConfiguration__not_now">Sio sasa</string>
+  <!--Label under name for private stories-->
+  <!--Label under name for group stories-->
+  <!--Gift expiry days remaining-->
+  <!--Gift expiry hours remaining-->
+  <!--Gift expiry minutes remaining-->
+  <!--Gift expiry expired-->
   <!--EOF-->
 </resources>

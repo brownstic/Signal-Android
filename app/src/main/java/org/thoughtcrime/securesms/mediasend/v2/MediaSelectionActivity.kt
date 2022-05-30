@@ -19,6 +19,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.animation.ArgbEvaluatorCompat
+import org.signal.core.util.BreakIteratorCompat
 import org.signal.core.util.logging.Log
 import org.thoughtcrime.securesms.PassphraseRequiredActivity
 import org.thoughtcrime.securesms.R
@@ -26,18 +27,21 @@ import org.thoughtcrime.securesms.TransportOption
 import org.thoughtcrime.securesms.TransportOptions
 import org.thoughtcrime.securesms.components.emoji.EmojiEventListener
 import org.thoughtcrime.securesms.contacts.paged.ContactSearchConfiguration
+import org.thoughtcrime.securesms.contacts.paged.ContactSearchKey
 import org.thoughtcrime.securesms.contacts.paged.ContactSearchState
+import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFullScreenDialogFragment
 import org.thoughtcrime.securesms.conversation.mutiselect.forward.SearchConfigurationProvider
 import org.thoughtcrime.securesms.conversation.ui.error.SafetyNumberChangeDialog
 import org.thoughtcrime.securesms.keyboard.emoji.EmojiKeyboardPageFragment
 import org.thoughtcrime.securesms.keyboard.emoji.search.EmojiSearchFragment
+import org.thoughtcrime.securesms.linkpreview.LinkPreviewUtil
 import org.thoughtcrime.securesms.mediasend.Media
 import org.thoughtcrime.securesms.mediasend.MediaSendActivityResult
 import org.thoughtcrime.securesms.mediasend.v2.review.MediaReviewFragment
 import org.thoughtcrime.securesms.mediasend.v2.text.TextStoryPostCreationViewModel
+import org.thoughtcrime.securesms.mediasend.v2.text.send.TextStoryPostSendRepository
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.stories.Stories
-import org.thoughtcrime.securesms.util.FeatureFlags
 import org.thoughtcrime.securesms.util.navigation.safeNavigate
 import org.thoughtcrime.securesms.util.visible
 
@@ -47,7 +51,8 @@ class MediaSelectionActivity :
   EmojiKeyboardPageFragment.Callback,
   EmojiEventListener,
   EmojiSearchFragment.Callback,
-  SearchConfigurationProvider {
+  SearchConfigurationProvider,
+  MultiselectForwardFullScreenDialogFragment.Callback {
 
   private var animateInShadowLayerValueAnimator: ValueAnimator? = null
   private var animateInTextColorValueAnimator: ValueAnimator? = null
@@ -56,13 +61,23 @@ class MediaSelectionActivity :
 
   lateinit var viewModel: MediaSelectionViewModel
 
-  private val textViewModel: TextStoryPostCreationViewModel by viewModels()
+  private val textViewModel: TextStoryPostCreationViewModel by viewModels(
+    factoryProducer = {
+      TextStoryPostCreationViewModel.Factory(TextStoryPostSendRepository())
+    }
+  )
 
   private val destination: MediaSelectionDestination
     get() = MediaSelectionDestination.fromBundle(requireNotNull(intent.getBundleExtra(DESTINATION)))
 
   private val isStory: Boolean
     get() = intent.getBooleanExtra(IS_STORY, false)
+
+  private val shareToTextStory: Boolean
+    get() = intent.getBooleanExtra(AS_TEXT_STORY, false)
+
+  private val draftText: CharSequence?
+    get() = intent.getCharSequenceExtra(MESSAGE)
 
   override fun attachBaseContext(newBase: Context) {
     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
@@ -74,10 +89,10 @@ class MediaSelectionActivity :
 
     val transportOption: TransportOption = requireNotNull(intent.getParcelableExtra(TRANSPORT_OPTION))
     val initialMedia: List<Media> = intent.getParcelableArrayListExtra(MEDIA) ?: listOf()
-    val message: CharSequence? = intent.getCharSequenceExtra(MESSAGE)
+    val message: CharSequence? = if (shareToTextStory) null else draftText
     val isReply: Boolean = intent.getBooleanExtra(IS_REPLY, false)
 
-    val factory = MediaSelectionViewModel.Factory(destination, transportOption, initialMedia, message, isReply, MediaSelectionRepository(this))
+    val factory = MediaSelectionViewModel.Factory(destination, transportOption, initialMedia, message, isReply, isStory, MediaSelectionRepository(this))
     viewModel = ViewModelProvider(this, factory)[MediaSelectionViewModel::class.java]
 
     val textStoryToggle: ConstraintLayout = findViewById(R.id.switch_widget)
@@ -100,6 +115,10 @@ class MediaSelectionActivity :
     }
 
     if (savedInstanceState == null) {
+      if (shareToTextStory) {
+        initializeTextStory()
+      }
+
       cameraSwitch.isSelected = true
 
       val navHostFragment = NavHostFragment.create(R.navigation.media)
@@ -168,9 +187,27 @@ class MediaSelectionActivity :
     }
   }
 
+  private fun initializeTextStory() {
+    val message = draftText?.toString() ?: return
+    val firstLink = LinkPreviewUtil.findValidPreviewUrls(message).findFirst()
+    val firstLinkUrl = firstLink.map { it.url }.orElse(null)
+
+    val iterator = BreakIteratorCompat.getInstance()
+    iterator.setText(message)
+    val trimmedMessage = iterator.take(700).toString()
+
+    if (firstLinkUrl == message) {
+      textViewModel.setLinkPreview(firstLinkUrl)
+    } else if (firstLinkUrl != null) {
+      textViewModel.setLinkPreview(firstLinkUrl)
+      textViewModel.setBody(trimmedMessage.replace(firstLinkUrl, "").trim())
+    } else {
+      textViewModel.setBody(trimmedMessage.trim())
+    }
+  }
+
   private fun canDisplayStorySwitch(): Boolean {
     return Stories.isFeatureEnabled() &&
-      FeatureFlags.storiesTextPosts() &&
       isCameraFirst() &&
       !viewModel.hasSelectedMedia() &&
       destination == MediaSelectionDestination.ChooseAfterMediaSelection
@@ -292,6 +329,11 @@ class MediaSelectionActivity :
   private inner class OnBackPressed : OnBackPressedCallback(true) {
     override fun handleOnBackPressed() {
       val navController = Navigation.findNavController(this@MediaSelectionActivity, R.id.fragment_container)
+
+      if (shareToTextStory && navController.currentDestination?.id == R.id.textStoryPostCreationFragment) {
+        finish()
+      }
+
       if (!navController.popBackStack()) {
         finish()
       }
@@ -310,6 +352,7 @@ class MediaSelectionActivity :
     private const val DESTINATION = "destination"
     private const val IS_REPLY = "is_reply"
     private const val IS_STORY = "is_story"
+    private const val AS_TEXT_STORY = "as_text_story"
 
     @JvmStatic
     fun camera(context: Context): Intent {
@@ -383,15 +426,18 @@ class MediaSelectionActivity :
       context: Context,
       transportOption: TransportOption,
       media: List<Media>,
-      recipientIds: List<RecipientId>,
-      message: CharSequence?
+      recipientSearchKeys: List<ContactSearchKey.RecipientSearchKey>,
+      message: CharSequence?,
+      asTextStory: Boolean
     ): Intent {
       return buildIntent(
         context = context,
         transportOption = transportOption,
         media = media,
-        destination = MediaSelectionDestination.MultipleRecipients(recipientIds),
-        message = message
+        destination = MediaSelectionDestination.MultipleRecipients(recipientSearchKeys),
+        message = message,
+        asTextStory = asTextStory,
+        startAction = if (asTextStory) R.id.action_directly_to_textPostCreationFragment else -1
       )
     }
 
@@ -403,7 +449,8 @@ class MediaSelectionActivity :
       destination: MediaSelectionDestination = MediaSelectionDestination.ChooseAfterMediaSelection,
       message: CharSequence? = null,
       isReply: Boolean = false,
-      isStory: Boolean = false
+      isStory: Boolean = false,
+      asTextStory: Boolean = false
     ): Intent {
       return Intent(context, MediaSelectionActivity::class.java).apply {
         putExtra(START_ACTION, startAction)
@@ -413,7 +460,12 @@ class MediaSelectionActivity :
         putExtra(DESTINATION, destination.toBundle())
         putExtra(IS_REPLY, isReply)
         putExtra(IS_STORY, isStory)
+        putExtra(AS_TEXT_STORY, asTextStory)
       }
     }
+  }
+
+  override fun canSendMediaToStories(): Boolean {
+    return viewModel.canShareSelectedMediaToStory()
   }
 }

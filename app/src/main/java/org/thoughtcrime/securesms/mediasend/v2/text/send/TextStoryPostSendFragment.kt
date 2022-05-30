@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -109,20 +110,20 @@ class TextStoryPostSendFragment : Fragment(R.layout.stories_send_text_post_fragm
 
     setFragmentResultListener(CreateStoryWithViewersFragment.REQUEST_KEY) { _, bundle ->
       val recipientId: RecipientId = bundle.getParcelable(CreateStoryWithViewersFragment.STORY_RECIPIENT)!!
-      contactSearchMediator.setKeysSelected(setOf(ContactSearchKey.Story(recipientId)))
+      contactSearchMediator.setKeysSelected(setOf(ContactSearchKey.RecipientSearchKey.Story(recipientId)))
       contactSearchMediator.onFilterChanged("")
     }
 
     setFragmentResultListener(ChooseGroupStoryBottomSheet.GROUP_STORY) { _, bundle ->
       val groups: Set<RecipientId> = bundle.getParcelableArrayList<RecipientId>(ChooseGroupStoryBottomSheet.RESULT_SET)?.toSet() ?: emptySet()
-      val keys: Set<ContactSearchKey.Story> = groups.map { ContactSearchKey.Story(it) }.toSet()
+      val keys: Set<ContactSearchKey.RecipientSearchKey.Story> = groups.map { ContactSearchKey.RecipientSearchKey.Story(it) }.toSet()
       contactSearchMediator.addToVisibleGroupStories(keys)
       contactSearchMediator.onFilterChanged("")
       contactSearchMediator.setKeysSelected(keys)
     }
 
     val contactsRecyclerView: RecyclerView = view.findViewById(R.id.contacts_container)
-    contactSearchMediator = ContactSearchMediator(this, contactsRecyclerView, FeatureFlags.shareSelectionLimit()) { contactSearchState ->
+    contactSearchMediator = ContactSearchMediator(this, contactsRecyclerView, FeatureFlags.shareSelectionLimit(), true) { contactSearchState ->
       ContactSearchConfiguration.build {
         query = contactSearchState.query
 
@@ -151,6 +152,10 @@ class TextStoryPostSendFragment : Fragment(R.layout.stories_send_text_post_fragm
         TextStoryPostSendState.INIT -> shareConfirmButton.isEnabled = selection.isNotEmpty()
         TextStoryPostSendState.SENDING -> shareConfirmButton.isEnabled = false
         TextStoryPostSendState.SENT -> requireActivity().finish()
+        else -> {
+          Toast.makeText(requireContext(), R.string.TextStoryPostSendFragment__an_unexpected_error_occurred_try_again, Toast.LENGTH_SHORT).show()
+          viewModel.onSendCancelled()
+        }
       }
     }
   }
@@ -160,7 +165,11 @@ class TextStoryPostSendFragment : Fragment(R.layout.stories_send_text_post_fragm
 
     val textStoryPostCreationState = creationViewModel.state.value
 
-    viewModel.onSend(contactSearchMediator.getSelectedContacts(), textStoryPostCreationState!!, linkPreviewViewModel.onSend().firstOrNull())
+    viewModel.onSend(
+      contactSearchMediator.getSelectedContacts(),
+      textStoryPostCreationState!!,
+      linkPreviewViewModel.onSendWithErrorUrl().firstOrNull()
+    )
   }
 
   private fun animateInSelection() {

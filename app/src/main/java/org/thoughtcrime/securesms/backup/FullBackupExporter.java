@@ -49,7 +49,7 @@ import org.thoughtcrime.securesms.keyvalue.SignalStore;
 import org.thoughtcrime.securesms.profiles.AvatarHelper;
 import org.thoughtcrime.securesms.recipients.RecipientId;
 import org.signal.core.util.CursorUtil;
-import org.thoughtcrime.securesms.util.SetUtil;
+import org.signal.core.util.SetUtil;
 import org.thoughtcrime.securesms.util.Stopwatch;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
@@ -197,7 +197,9 @@ public class FullBackupExporter extends FullBackupBase {
         throwIfCanceled(cancellationSignal);
         if (avatar != null) {
           EventBus.getDefault().post(new BackupEvent(BackupEvent.Type.PROGRESS, ++count, estimatedCount));
-          outputStream.write(avatar.getFilename(), avatar.getInputStream(), avatar.getLength());
+          try (InputStream inputStream = avatar.getInputStream()) {
+            outputStream.write(avatar.getFilename(), inputStream, avatar.getLength());
+          }
         }
       }
 
@@ -377,6 +379,7 @@ public class FullBackupExporter extends FullBackupBase {
 
         EventBus.getDefault().post(new BackupEvent(BackupEvent.Type.PROGRESS, ++count, estimatedCount));
         outputStream.write(new AttachmentId(rowId, uniqueId), inputStream, size);
+        inputStream.close();
       }
     } catch (IOException e) {
       Log.w(TAG, e);
@@ -395,8 +398,9 @@ public class FullBackupExporter extends FullBackupBase {
 
       if (!TextUtils.isEmpty(data) && size > 0) {
         EventBus.getDefault().post(new BackupEvent(BackupEvent.Type.PROGRESS, ++count, estimatedCount));
-        InputStream inputStream = ModernDecryptingPartInputStream.createFor(attachmentSecret, random, new File(data), 0);
-        outputStream.writeSticker(rowId, inputStream, size);
+        try (InputStream inputStream = ModernDecryptingPartInputStream.createFor(attachmentSecret, random, new File(data), 0)) {
+          outputStream.writeSticker(rowId, inputStream, size);
+        }
       }
     } catch (IOException e) {
       Log.w(TAG, e);

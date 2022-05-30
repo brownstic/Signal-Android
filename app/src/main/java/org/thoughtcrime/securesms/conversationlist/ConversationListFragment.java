@@ -137,9 +137,14 @@ import org.thoughtcrime.securesms.search.SearchResult;
 import org.thoughtcrime.securesms.service.KeyCachingService;
 import org.thoughtcrime.securesms.sms.MessageSender;
 import org.thoughtcrime.securesms.storage.StorageSyncHelper;
+import org.thoughtcrime.securesms.stories.tabs.ConversationListTab;
+import org.thoughtcrime.securesms.stories.tabs.ConversationListTabsViewModel;
 import org.thoughtcrime.securesms.util.AppForegroundObserver;
 import org.thoughtcrime.securesms.util.AppStartup;
 import org.thoughtcrime.securesms.util.BottomSheetUtil;
+import org.thoughtcrime.securesms.util.ConversationUtil;
+import org.thoughtcrime.securesms.util.FeatureFlags;
+import org.thoughtcrime.securesms.util.LifecycleDisposable;
 import org.thoughtcrime.securesms.util.PlayStoreUtil;
 import org.thoughtcrime.securesms.util.ServiceUtil;
 import org.thoughtcrime.securesms.util.SignalLocalMetrics;
@@ -151,7 +156,7 @@ import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
 import org.thoughtcrime.securesms.util.WindowUtil;
-import org.thoughtcrime.securesms.util.concurrent.SimpleTask;
+import org.signal.core.util.concurrent.SimpleTask;
 import org.thoughtcrime.securesms.util.task.SnackbarAsyncTask;
 import org.thoughtcrime.securesms.util.views.SimpleProgressDialog;
 import org.thoughtcrime.securesms.util.views.Stub;
@@ -183,6 +188,8 @@ public class ConversationListFragment extends MainFragment implements ActionMode
   public static final short MESSAGE_REQUESTS_REQUEST_CODE_CREATE_NAME = 32562;
   public static final short SMS_ROLE_REQUEST_CODE                     = 32563;
 
+  private static final int LIST_SMOOTH_SCROLL_TO_TOP_THRESHOLD = 25;
+
   private static final String TAG = Log.tag(ConversationListFragment.class);
 
   private static final int MAXIMUM_PINNED_CONVERSATIONS = 4;
@@ -210,10 +217,13 @@ public class ConversationListFragment extends MainFragment implements ActionMode
   private Stub<FrameLayout>              voiceNotePlayerViewStub;
   private VoiceNotePlayerView            voiceNotePlayerView;
   private SignalBottomActionBar          bottomActionBar;
+  private SignalContextMenu              activeContextMenu;
+  private LifecycleDisposable            lifecycleDisposable;
 
   protected ConversationListArchiveItemDecoration archiveDecoration;
   protected ConversationListItemAnimator          itemAnimator;
   private   Stopwatch                             startupStopwatch;
+  private   ConversationListTabsViewModel         conversationListTabsViewModel;
 
   public static ConversationListFragment newInstance() {
     return new ConversationListFragment();
@@ -246,8 +256,6 @@ public class ConversationListFragment extends MainFragment implements ActionMode
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     coordinator               = view.findViewById(R.id.coordinator);
     list                      = view.findViewById(R.id.list);
-    fab                       = view.findViewById(R.id.fab);
-    cameraFab                 = view.findViewById(R.id.camera_fab);
     searchEmptyState          = view.findViewById(R.id.search_no_results);
     toolbarShadow             = view.findViewById(R.id.conversation_list_toolbar_shadow);
     bottomActionBar           = view.findViewById(R.id.conversation_list_bottom_action_bar);
@@ -257,8 +265,16 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     paymentNotificationView   = new Stub<>(view.findViewById(R.id.payments_notification));
     voiceNotePlayerViewStub   = new Stub<>(view.findViewById(R.id.voice_note_player));
 
-    Toolbar toolbar = getToolbar(view);
-    toolbar.setVisibility(View.VISIBLE);
+    if (FeatureFlags.internalUser()) {
+      fab       = view.findViewById(R.id.fab_new);
+      cameraFab = view.findViewById(R.id.camera_fab_new);
+
+      fab.setVisibility(View.VISIBLE);
+      cameraFab.setVisibility(View.VISIBLE);
+    } else {
+      fab       = view.findViewById(R.id.fab_old);
+      cameraFab = view.findViewById(R.id.camera_fab_old);
+    }
 
     fab.show();
     cameraFab.show();
@@ -308,6 +324,45 @@ public class ConversationListFragment extends MainFragment implements ActionMode
         }
       }
     });
+
+    lifecycleDisposable           = new LifecycleDisposable();
+    conversationListTabsViewModel = new ViewModelProvider(requireActivity()).get(ConversationListTabsViewModel.class);
+
+    lifecycleDisposable.bindTo(getViewLifecycleOwner());
+    lifecycleDisposable.add(conversationListTabsViewModel.getTabClickEvents().filter(tab -> tab == ConversationListTab.CHATS)
+                                                         .subscribe(unused -> {
+                                                           LinearLayoutManager layoutManager = (LinearLayoutManager) list.getLayoutManager();
+                                                           int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                                                           if (firstVisibleItemPosition <= LIST_SMOOTH_SCROLL_TO_TOP_THRESHOLD) {
+                                                             list.smoothScrollToPosition(0);
+                                                           } else {
+                                                             list.scrollToPosition(0);
+                                                           }
+                                                         }));
+  }
+
+  @Override
+  public void onDestroyView() {
+    coordinator             = null;
+    list                    = null;
+    searchEmptyState        = null;
+    toolbarShadow           = null;
+    bottomActionBar         = null;
+    reminderView            = null;
+    emptyState              = null;
+    megaphoneContainer      = null;
+    paymentNotificationView = null;
+    voiceNotePlayerViewStub = null;
+    fab                     = null;
+    cameraFab               = null;
+    snapToTopDataObserver   = null;
+    itemAnimator            = null;
+
+    activeAdapter  = null;
+    defaultAdapter = null;
+    searchAdapter  = null;
+
+    super.onDestroyView();
   }
 
   @Override
@@ -341,21 +396,36 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     Badge                              expiredBadge                       = SignalStore.donationsValues().getExpiredBadge();
     String                             subscriptionCancellationReason     = SignalStore.donationsValues().getUnexpectedSubscriptionCancelationReason();
     UnexpectedSubscriptionCancellation unexpectedSubscriptionCancellation = UnexpectedSubscriptionCancellation.fromStatus(subscriptionCancellationReason);
+    boolean                            isDisplayingSubscriptionFailure    = false;
+    long                               subscriptionFailureTimestamp       = SignalStore.donationsValues().getUnexpectedSubscriptionCancelationTimestamp();
+    long                               subscriptionFailureWatermark       = SignalStore.donationsValues().getUnexpectedSubscriptionCancelationWatermark();
+    boolean                            isWatermarkPriorToTimestamp        = subscriptionFailureWatermark < subscriptionFailureTimestamp;
 
-    if (expiredBadge != null) {
+    if (unexpectedSubscriptionCancellation != null               &&
+        !SignalStore.donationsValues().isUserManuallyCancelled() &&
+        SignalStore.donationsValues().showCantProcessDialog()    &&
+        isWatermarkPriorToTimestamp) {
+      Log.w(TAG, "Displaying bottom sheet for unexpected cancellation: " + unexpectedSubscriptionCancellation, true);
+      new CantProcessSubscriptionPaymentBottomSheetDialogFragment().show(getChildFragmentManager(), BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG);
+      SignalStore.donationsValues().setUnexpectedSubscriptionCancelationWatermark(subscriptionFailureTimestamp);
+      isDisplayingSubscriptionFailure = true;
+    } else if (unexpectedSubscriptionCancellation != null && SignalStore.donationsValues().isUserManuallyCancelled()) {
+      Log.w(TAG, "Unexpected cancellation detected but not displaying dialog because user manually cancelled their subscription: " + unexpectedSubscriptionCancellation, true);
+    } else if (unexpectedSubscriptionCancellation != null && !SignalStore.donationsValues().showCantProcessDialog()) {
+      Log.w(TAG, "Unexpected cancellation detected but not displaying dialog because user has silenced it.", true);
+    }
+
+    if (expiredBadge != null && !isDisplayingSubscriptionFailure) {
       SignalStore.donationsValues().setExpiredBadge(null);
 
       if (expiredBadge.isBoost() || !SignalStore.donationsValues().isUserManuallyCancelled()) {
         Log.w(TAG, "Displaying bottom sheet for an expired badge", true);
-        ExpiredBadgeBottomSheetDialogFragment.show(expiredBadge, unexpectedSubscriptionCancellation, getParentFragmentManager());
+        ExpiredBadgeBottomSheetDialogFragment.show(
+            expiredBadge,
+            unexpectedSubscriptionCancellation,
+            SignalStore.donationsValues().getUnexpectedSubscriptionCancelationChargeFailure(),
+            getParentFragmentManager());
       }
-    } else if (unexpectedSubscriptionCancellation != null && !SignalStore.donationsValues().isUserManuallyCancelled() && SignalStore.donationsValues().getShowCantProcessDialog()) {
-      Log.w(TAG, "Displaying bottom sheet for unexpected cancellation: " + unexpectedSubscriptionCancellation, true);
-      new CantProcessSubscriptionPaymentBottomSheetDialogFragment().show(getChildFragmentManager(), BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG);
-    } else if (unexpectedSubscriptionCancellation != null && SignalStore.donationsValues().isUserManuallyCancelled()) {
-      Log.w(TAG, "Unexpected cancellation detected but not displaying dialog because user manually cancelled their subscription: " + unexpectedSubscriptionCancellation, true);
-    } else if (unexpectedSubscriptionCancellation != null && !SignalStore.donationsValues().getShowCantProcessDialog()) {
-      Log.w(TAG, "Unexpected cancellation detected but not displaying dialog because user has silenced it.", true);
     }
   }
 
@@ -411,8 +481,12 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     return false;
   }
 
+  private boolean isSearchOpen() {
+    return (requireCallback().getSearchToolbar().resolved() && requireCallback().getSearchToolbar().get().isVisible()) || activeAdapter == searchAdapter;
+  }
+
   private boolean closeSearchIfOpen() {
-    if ((requireCallback().getSearchToolbar().resolved() && requireCallback().getSearchToolbar().get().isVisible()) || activeAdapter == searchAdapter) {
+    if (isSearchOpen()) {
       list.removeItemDecoration(searchAdapterDecoration);
       setAdapter(defaultAdapter);
       requireCallback().getSearchToolbar().get().collapse();
@@ -537,6 +611,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
 
   private void initializeSearchListener() {
     requireCallback().getSearchAction().setOnClickListener(v -> {
+      fadeOutButtonsAndMegaphone(250);
       requireCallback().onSearchOpened();
       requireCallback().getSearchToolbar().get().display(requireCallback().getSearchAction().getX() + (requireCallback().getSearchAction().getWidth() / 2.0f),
                                                          requireCallback().getSearchAction().getY() + (requireCallback().getSearchAction().getHeight() / 2.0f));
@@ -567,6 +642,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
           list.removeItemDecoration(searchAdapterDecoration);
           setAdapter(defaultAdapter);
           requireCallback().onSearchClosed();
+          fadeInButtonsAndMegaphone(250);
         }
       });
     });
@@ -594,8 +670,8 @@ public class ConversationListFragment extends MainFragment implements ActionMode
 
 
   private void initializeListAdapters() {
-    defaultAdapter          = new ConversationListAdapter(GlideApp.with(this), this);
-    searchAdapter           = new ConversationListSearchAdapter(GlideApp.with(this), this, Locale.getDefault());
+    defaultAdapter          = new ConversationListAdapter(getViewLifecycleOwner(), GlideApp.with(this), this);
+    searchAdapter           = new ConversationListSearchAdapter(getViewLifecycleOwner(), GlideApp.with(this), this, Locale.getDefault());
     searchAdapterDecoration = new StickyHeaderDecoration(searchAdapter, false, false, 0);
 
     setAdapter(defaultAdapter);
@@ -688,6 +764,10 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     int                 firstVisibleItem = layoutManager != null ? layoutManager.findFirstCompletelyVisibleItemPosition() : -1;
 
     defaultAdapter.submitList(conversations, () -> {
+      if (list == null) {
+        return;
+      }
+
       if (firstVisibleItem == 0) {
         list.scrollToPosition(0);
       }
@@ -745,7 +825,11 @@ public class ConversationListFragment extends MainFragment implements ActionMode
 
     if (view != null) {
       megaphoneContainer.get().addView(view);
-      megaphoneContainer.get().setVisibility(View.VISIBLE);
+      if (isSearchOpen() || actionMode != null) {
+        megaphoneContainer.get().setVisibility(View.GONE);
+      } else {
+        megaphoneContainer.get().setVisibility(View.VISIBLE);
+      }
     } else {
       megaphoneContainer.get().setVisibility(View.GONE);
 
@@ -953,6 +1037,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
       ThreadDatabase db = SignalDatabase.threads();
 
       db.pinConversations(toPin);
+      ConversationUtil.refreshRecipientShortcuts();
 
       return null;
     }, unused -> {
@@ -965,6 +1050,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
       ThreadDatabase db = SignalDatabase.threads();
 
       db.unpinConversations(ids);
+      ConversationUtil.refreshRecipientShortcuts();
 
       return null;
     }, unused -> {
@@ -1011,6 +1097,22 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     });
   }
 
+  private void fadeOutButtonsAndMegaphone(int fadeDuration) {
+    ViewUtil.fadeOut(fab, fadeDuration);
+    ViewUtil.fadeOut(cameraFab, fadeDuration);
+    if (megaphoneContainer.resolved()) {
+      ViewUtil.fadeOut(megaphoneContainer.get(), fadeDuration);
+    }
+  }
+
+  private void fadeInButtonsAndMegaphone(int fadeDuration) {
+    ViewUtil.fadeIn(fab, fadeDuration);
+    ViewUtil.fadeIn(cameraFab, fadeDuration);
+    if (megaphoneContainer.resolved()) {
+      ViewUtil.fadeIn(megaphoneContainer.get(), fadeDuration);
+    }
+  }
+
   private void startActionMode() {
     actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(ConversationListFragment.this);
     ViewUtil.animateIn(bottomActionBar, bottomActionBar.getEnterAnimation());
@@ -1019,6 +1121,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     if (megaphoneContainer.resolved()) {
       ViewUtil.fadeOut(megaphoneContainer.get(), 250);
     }
+    requireCallback().onMultiSelectStarted();
   }
 
   private void endActionModeIfActive() {
@@ -1036,6 +1139,7 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     if (megaphoneContainer.resolved()) {
       ViewUtil.fadeIn(megaphoneContainer.get(), 250);
     }
+    requireCallback().onMultiSelectFinished();
   }
 
   void updateEmptyState(boolean isConversationEmpty) {
@@ -1088,6 +1192,11 @@ public class ConversationListFragment extends MainFragment implements ActionMode
       return true;
     }
 
+    if (activeContextMenu != null) {
+      Log.w(TAG, "Already showing a context menu.");
+      return true;
+    }
+
     view.setSelected(true);
 
     Collection<Long> id = Collections.singleton(conversation.getThreadRecord().getThreadId());
@@ -1127,10 +1236,11 @@ public class ConversationListFragment extends MainFragment implements ActionMode
 
     items.add(new ActionItem(R.drawable.ic_delete_24, getResources().getQuantityString(R.plurals.ConversationListFragment_delete_plural, 1), () -> handleDelete(id)));
 
-    new SignalContextMenu.Builder(view, list)
+    activeContextMenu = new SignalContextMenu.Builder(view, list)
         .offsetX(ViewUtil.dpToPx(12))
         .offsetY(ViewUtil.dpToPx(12))
         .onDismiss(() -> {
+          activeContextMenu = null;
           view.setSelected(false);
           list.suppressLayout(false);
         })
@@ -1297,6 +1407,8 @@ public class ConversationListFragment extends MainFragment implements ActionMode
           ApplicationDependencies.getMessageNotifier().updateNotification(context);
           MarkReadReceiver.process(context, messageIds);
         }
+
+        ConversationUtil.refreshRecipientShortcuts();
       }
 
       @Override
@@ -1310,6 +1422,8 @@ public class ConversationListFragment extends MainFragment implements ActionMode
           threadDatabase.incrementUnread(threadId, unreadCount);
           ApplicationDependencies.getMessageNotifier().updateNotification(context);
         }
+
+        ConversationUtil.refreshRecipientShortcuts();
       }
     }.executeOnExecutor(SignalExecutors.BOUNDED, threadId);
   }
@@ -1441,7 +1555,6 @@ public class ConversationListFragment extends MainFragment implements ActionMode
                             float dX, float dY, int actionState,
                             boolean isCurrentlyActive)
     {
-      if (viewHolder.itemView instanceof ConversationListItemInboxZero) return;
       float absoluteDx = Math.abs(dX);
 
       if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
@@ -1505,7 +1618,13 @@ public class ConversationListFragment extends MainFragment implements ActionMode
       super.clearView(recyclerView, viewHolder);
       ViewCompat.setElevation(viewHolder.itemView, 0);
       lastTouched = null;
-      itemAnimator.postDisable(requireView().getHandler());
+
+      View view = getView();
+      if (view != null) {
+        itemAnimator.postDisable(view.getHandler());
+      } else {
+        itemAnimator.disable();
+      }
     }
   }
 
@@ -1565,6 +1684,8 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     void updateProxyStatus(@NonNull WebSocketConnectionState state);
     void onSearchOpened();
     void onSearchClosed();
+    void onMultiSelectStarted();
+    void onMultiSelectFinished();
   }
 }
 

@@ -35,16 +35,18 @@ open class ContactSearchPagedDataSourceRepository(
   }
 
   open fun getGroupContacts(section: ContactSearchConfiguration.Section.Groups, query: String?): Cursor? {
-    return SignalDatabase.groups.getGroupsFilteredByTitle(query ?: "", section.includeInactive, !section.includeV1, !section.includeMms).cursor
+    return SignalDatabase.groups.queryGroupsByTitle(query ?: "", section.includeInactive, !section.includeV1, !section.includeMms).cursor
   }
 
   open fun getRecents(section: ContactSearchConfiguration.Section.Recents): Cursor? {
     return SignalDatabase.threads.getRecentConversationList(
       section.limit,
       section.includeInactiveGroups,
-      section.groupsOnly,
+      section.mode == ContactSearchConfiguration.Section.Recents.Mode.INDIVIDUALS,
+      section.mode == ContactSearchConfiguration.Section.Recents.Mode.GROUPS,
       !section.includeGroupsV1,
-      !section.includeSms
+      !section.includeSms,
+      !section.includeSelf
     )
   }
 

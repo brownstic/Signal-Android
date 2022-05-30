@@ -2,6 +2,7 @@ package org.thoughtcrime.securesms.mediasend.v2.review
 
 import android.animation.Animator
 import android.animation.AnimatorSet
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -12,7 +13,9 @@ import android.widget.Toast
 import android.widget.ViewSwitcher
 import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -23,8 +26,8 @@ import androidx.viewpager2.widget.ViewPager2
 import app.cash.exhaustive.Exhaustive
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import org.thoughtcrime.securesms.R
+import org.thoughtcrime.securesms.TransportOption
 import org.thoughtcrime.securesms.contacts.paged.ContactSearchKey
-import org.thoughtcrime.securesms.contacts.paged.RecipientSearchKey
 import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragment
 import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragmentArgs
 import org.thoughtcrime.securesms.mediasend.MediaSendActivityResult
@@ -135,9 +138,9 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
       sharedViewModel.sendCommand(HudCommand.SaveMedia)
     }
 
-    setFragmentResultListener(MultiselectForwardFragment.RESULT_SELECTION) { _, bundle ->
-      val parcelizedKeys: List<ContactSearchKey.ParcelableContactSearchKey> = bundle.getParcelableArrayList(MultiselectForwardFragment.RESULT_SELECTION_RECIPIENTS)!!
-      val contactSearchKeys = parcelizedKeys.map { it.asContactSearchKey() }
+    setFragmentResultListener(MultiselectForwardFragment.RESULT_KEY) { _, bundle ->
+      val parcelizedKeys: List<ContactSearchKey.ParcelableRecipientSearchKey> = bundle.getParcelableArrayList(MultiselectForwardFragment.RESULT_SELECTION)!!
+      val contactSearchKeys = parcelizedKeys.map { it.asRecipientSearchKey() }
       performSend(contactSearchKeys)
     }
 
@@ -197,6 +200,7 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
         state.selectedMedia.map { MediaReviewSelectedItem.Model(it, state.focusedMedia == it) } + MediaReviewAddItem.Model
       )
 
+      presentSendButton(state.transportOption)
       presentPager(state)
       presentAddMessageEntry(state.message)
       presentImageQualityToggle(state.quality)
@@ -264,7 +268,7 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
       .alpha(1f)
 
     sharedViewModel
-      .send(selection.filterIsInstance(RecipientSearchKey::class.java))
+      .send(selection.filterIsInstance(ContactSearchKey.RecipientSearchKey::class.java))
       .subscribe(
         { result -> callback.onSentWithResult(result) },
         { error -> callback.onSendError(error) },
@@ -283,6 +287,16 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
         SentMediaQuality.HIGH -> R.drawable.ic_hq_36
       }
     )
+  }
+
+  private fun presentSendButton(transportOption: TransportOption) {
+    val sendButtonTint = if (transportOption.type == TransportOption.Type.TEXTSECURE) {
+      R.color.core_ultramarine
+    } else {
+      R.color.core_grey_50
+    }
+
+    ViewCompat.setBackgroundTintList(sendButton, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), sendButtonTint)))
   }
 
   private fun presentPager(state: MediaSelectionState) {
@@ -367,7 +381,7 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
   }
 
   private fun computeViewOnceButtonAnimators(state: MediaSelectionState): List<Animator> {
-    return if (state.isTouchEnabled && state.selectedMedia.size == 1) {
+    return if (state.isTouchEnabled && state.selectedMedia.size == 1 && !state.isStory) {
       listOf(MediaReviewAnimatorController.getFadeInAnimator(viewOnceButton))
     } else {
       listOf(MediaReviewAnimatorController.getFadeOutAnimator(viewOnceButton))

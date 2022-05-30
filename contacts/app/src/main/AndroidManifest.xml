@@ -20,9 +20,12 @@
         </activity>
 
         <activity
-            android:name=".ContactsActivity"
+            android:name=".ContactListActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ContactLookupActivity"
+            android:exported="false" />
 
         <service
             android:name=".AccountAuthenticatorService"
@@ -33,6 +36,21 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
+        </service>
+
+        <service
+            android:name=".ContactsSyncAdapterService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+            <meta-data
+                android:name="android.provider.CONTACTS_STRUCTURE"
+                android:resource="@xml/contactsformat" />
         </service>
     </application>
 

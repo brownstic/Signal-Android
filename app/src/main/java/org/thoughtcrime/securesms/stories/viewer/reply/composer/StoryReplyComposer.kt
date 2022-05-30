@@ -14,11 +14,13 @@ import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.components.ComposeText
 import org.thoughtcrime.securesms.components.InputAwareLayout
 import org.thoughtcrime.securesms.components.QuoteView
+import org.thoughtcrime.securesms.components.emoji.EmojiPageView
 import org.thoughtcrime.securesms.components.emoji.EmojiToggle
 import org.thoughtcrime.securesms.components.emoji.MediaKeyboard
 import org.thoughtcrime.securesms.database.model.MediaMmsMessageRecord
 import org.thoughtcrime.securesms.database.model.Mention
 import org.thoughtcrime.securesms.mms.GlideApp
+import org.thoughtcrime.securesms.mms.QuoteModel
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.util.visible
 
@@ -41,6 +43,9 @@ class StoryReplyComposer @JvmOverloads constructor(
     private set
 
   var callback: Callback? = null
+
+  val emojiPageView: EmojiPageView?
+    get() = findViewById(R.id.emoji_page_view)
 
   init {
     inflate(context, R.layout.stories_reply_to_story_composer, this)
@@ -85,6 +90,12 @@ class StoryReplyComposer @JvmOverloads constructor(
     emojiDrawerToggle.setOnClickListener {
       onEmojiToggleClicked()
     }
+
+    inputAwareLayout.addOnKeyboardShownListener {
+      if (inputAwareLayout.currentInput == emojiDrawer && !emojiDrawer.isEmojiSearchMode) {
+        onEmojiToggleClicked()
+      }
+    }
   }
 
   fun setQuote(messageRecord: MediaMmsMessageRecord) {
@@ -95,7 +106,9 @@ class StoryReplyComposer @JvmOverloads constructor(
       messageRecord.body,
       false,
       messageRecord.slideDeck,
-      null
+      null,
+      null,
+      QuoteModel.Type.NORMAL
     )
 
     quoteView.visible = true
@@ -113,10 +126,6 @@ class StoryReplyComposer @JvmOverloads constructor(
     input.setText("")
 
     return trimmedText to mentions
-  }
-
-  override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-    callback?.onHeightChanged(h)
   }
 
   fun openEmojiSearch() {
@@ -140,11 +149,13 @@ class StoryReplyComposer @JvmOverloads constructor(
     if (inputAwareLayout.currentInput == emojiDrawer) {
       isRequestingEmojiDrawer = false
       inputAwareLayout.showSoftkey(input)
+      callback?.onHideEmojiKeyboard()
     } else {
       isRequestingEmojiDrawer = true
       inputAwareLayout.hideSoftkey(input) {
         inputAwareLayout.post {
           inputAwareLayout.show(input, emojiDrawer)
+          emojiDrawer.post { callback?.onShowEmojiKeyboard() }
         }
       }
     }
@@ -154,7 +165,8 @@ class StoryReplyComposer @JvmOverloads constructor(
     fun onSendActionClicked()
     fun onPickReactionClicked()
     fun onInitializeEmojiDrawer(mediaKeyboard: MediaKeyboard)
-    fun onHeightChanged(height: Int)
+    fun onShowEmojiKeyboard() = Unit
+    fun onHideEmojiKeyboard() = Unit
   }
 
   companion object {

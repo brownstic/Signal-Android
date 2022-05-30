@@ -39,8 +39,16 @@ class MultiselectForwardBottomSheet : FixedRoundedCornerBottomSheetDialogFragmen
     return requireView().parent.parent.parent as ViewGroup
   }
 
+  override fun getDialogBackgroundColor(): Int {
+    return backgroundColor
+  }
+
+  override fun canSendMediaToStories(): Boolean {
+    return findListener<Callback>()?.canSendMediaToStories() ?: true
+  }
+
   override fun setResult(bundle: Bundle) {
-    setFragmentResult(MultiselectForwardFragment.RESULT_SELECTION, bundle)
+    setFragmentResult(MultiselectForwardFragment.RESULT_KEY, bundle)
   }
 
   override fun onDismiss(dialog: DialogInterface) {
@@ -63,5 +71,6 @@ class MultiselectForwardBottomSheet : FixedRoundedCornerBottomSheetDialogFragmen
   interface Callback {
     fun onFinishForwardAction()
     fun onDismissForwardSheet()
+    fun canSendMediaToStories(): Boolean = true
   }
 }

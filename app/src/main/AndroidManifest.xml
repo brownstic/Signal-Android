@@ -174,11 +174,12 @@
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
               android:windowSoftInputMode="adjustResize" />
 
-    <activity android:name=".sharing.ShareActivity"
+    <activity android:name=".sharing.v2.ShareActivity"
               android:theme="@style/Theme.Signal.DayNight.NoActionBar"
               android:excludeFromRecents="true"
               android:taskAffinity=""
               android:windowSoftInputMode="stateHidden"
+              android:exported="true"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
         <intent-filter>
             <action android:name="android.intent.action.SEND" />
@@ -404,9 +405,17 @@
 
     <activity
         android:name=".stories.viewer.StoryViewerActivity"
+        android:screenOrientation="portrait"
         android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
         android:theme="@style/TextSecure.DarkNoActionBar.StoryViewer"
-        android:windowSoftInputMode="stateAlwaysHidden|adjustNothing" />
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="stateAlwaysHidden|adjustNothing"
+        android:parentActivityName=".MainActivity">
+
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="org.thoughtcrime.securesms.MainActivity" />
+    </activity>
 
         <activity android:name=".components.settings.app.changenumber.ChangeNumberLockActivity"
             android:theme="@style/Signal.DayNight.NoActionBar"
@@ -418,6 +427,11 @@
             android:windowSoftInputMode="stateAlwaysHidden">
         </activity>
 
+        <activity android:name=".badges.gifts.flow.GiftFlowActivity"
+            android:configChanges="touchscreen|keyboard|keyboardHidden|screenLayout|screenSize"
+            android:theme="@style/Signal.DayNight.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden">
+        </activity>
 
         <activity android:name=".wallpaper.ChatWallpaperActivity"
                   android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
@@ -536,6 +550,7 @@
 
     <activity android:name=".blocked.BlockedUsersActivity"
               android:theme="@style/TextSecure.LightTheme"
+              android:windowSoftInputMode="stateHidden"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name=".scribbles.ImageEditorStickerSelectActivity"
@@ -646,7 +661,7 @@
               android:theme="@style/Theme.Signal.DayNight.NoActionBar"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
-    <service android:enabled="true" android:name=".service.webrtc.WebRtcCallService"/>
+    <service android:enabled="true" android:name=".service.webrtc.WebRtcCallService" android:foregroundServiceType="camera|microphone"/>
     <service android:enabled="true" android:name=".service.ApplicationMigrationService"/>
     <service android:enabled="true" android:exported="false" android:name=".service.KeyCachingService"/>
     <service android:enabled="true" android:name=".messages.IncomingMessageObserver$ForegroundService"/>
@@ -700,7 +715,9 @@
 
     <service android:name=".service.GenericForegroundService"/>
 
-    <service android:name=".gcm.FcmFetchService" />
+    <service android:name=".gcm.FcmFetchBackgroundService" />
+
+    <service android:name=".gcm.FcmFetchForegroundService" />
 
     <service android:name=".gcm.FcmReceiveService">
         <intent-filter>

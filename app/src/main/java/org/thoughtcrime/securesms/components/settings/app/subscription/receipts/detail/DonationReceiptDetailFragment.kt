@@ -13,6 +13,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.view.drawToBitmap
 import androidx.fragment.app.viewModels
 import com.google.android.material.button.MaterialButton
+import org.signal.core.util.concurrent.SimpleTask
 import org.signal.core.util.logging.Log
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.components.settings.DSLConfiguration
@@ -25,7 +26,6 @@ import org.thoughtcrime.securesms.database.model.DonationReceiptRecord
 import org.thoughtcrime.securesms.payments.FiatMoneyUtil
 import org.thoughtcrime.securesms.providers.BlobProvider
 import org.thoughtcrime.securesms.util.DateUtils
-import org.thoughtcrime.securesms.util.concurrent.SimpleTask
 import java.io.ByteArrayOutputStream
 import java.util.Locale
 
@@ -71,6 +71,7 @@ class DonationReceiptDetailFragment : DSLSettingsFragment(layoutId = R.layout.do
     val type: String = when (record.type) {
       DonationReceiptRecord.Type.RECURRING -> getString(R.string.DonationReceiptDetailsFragment__s_dash_s, subscriptionName, getString(R.string.DonationReceiptListFragment__recurring))
       DonationReceiptRecord.Type.BOOST -> getString(R.string.DonationReceiptListFragment__one_time)
+      DonationReceiptRecord.Type.GIFT -> getString(R.string.DonationReceiptListFragment__gift)
     }
     val datePaid: String = DateUtils.formatDate(Locale.getDefault(), record.timestamp)
 
@@ -142,6 +143,7 @@ class DonationReceiptDetailFragment : DSLSettingsFragment(layoutId = R.layout.do
           when (record.type) {
             DonationReceiptRecord.Type.RECURRING -> getString(R.string.DonationReceiptDetailsFragment__s_dash_s, subscriptionName, getString(R.string.DonationReceiptListFragment__recurring))
             DonationReceiptRecord.Type.BOOST -> getString(R.string.DonationReceiptListFragment__one_time)
+            DonationReceiptRecord.Type.GIFT -> getString(R.string.DonationReceiptListFragment__gift)
           }
         )
       )

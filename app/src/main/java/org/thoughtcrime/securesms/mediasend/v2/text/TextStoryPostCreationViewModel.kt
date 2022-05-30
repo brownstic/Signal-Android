@@ -7,24 +7,29 @@ import androidx.annotation.ColorInt
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
 import org.signal.core.util.logging.Log
+import org.thoughtcrime.securesms.contacts.paged.ContactSearchKey
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies
-import org.thoughtcrime.securesms.fonts.Fonts
 import org.thoughtcrime.securesms.fonts.TextFont
-import org.thoughtcrime.securesms.util.FutureTaskListener
+import org.thoughtcrime.securesms.fonts.TextToScript
+import org.thoughtcrime.securesms.fonts.TypefaceCache
+import org.thoughtcrime.securesms.linkpreview.LinkPreview
+import org.thoughtcrime.securesms.mediasend.v2.text.send.TextStoryPostSendRepository
+import org.thoughtcrime.securesms.mediasend.v2.text.send.TextStoryPostSendResult
 import org.thoughtcrime.securesms.util.livedata.Store
-import java.util.Locale
-import java.util.concurrent.ExecutionException
 
-class TextStoryPostCreationViewModel : ViewModel() {
+class TextStoryPostCreationViewModel(private val repository: TextStoryPostSendRepository) : ViewModel() {
 
   private val store = Store(TextStoryPostCreationState())
   private val textFontSubject: Subject<TextFont> = BehaviorSubject.create()
+  private val temporaryBodySubject: Subject<String> = BehaviorSubject.createDefault("")
   private val disposables = CompositeDisposable()
 
   private val internalThumbnail = MutableLiveData<Bitmap>()
@@ -38,16 +43,12 @@ class TextStoryPostCreationViewModel : ViewModel() {
   init {
     textFontSubject.onNext(store.state.textFont)
 
-    textFontSubject
+    val scriptGuess = temporaryBodySubject.observeOn(Schedulers.io()).map { TextToScript.guessScript(it) }
+
+    Observable.combineLatest(textFontSubject, scriptGuess, ::Pair)
       .observeOn(Schedulers.io())
       .distinctUntilChanged()
-      .map { Fonts.resolveFont(ApplicationDependencies.getApplication(), Locale.getDefault(), it) }
-      .switchMap {
-        when (it) {
-          is Fonts.FontResult.Async -> asyncFontEmitter(it)
-          is Fonts.FontResult.Immediate -> Observable.just(it.typeface)
-        }
-      }
+      .switchMapSingle { (textFont, script) -> TypefaceCache.get(ApplicationDependencies.getApplication(), textFont, script) }
       .subscribeOn(Schedulers.io())
       .subscribe {
         internalTypeface.postValue(it)
@@ -57,30 +58,6 @@ class TextStoryPostCreationViewModel : ViewModel() {
   fun setBitmap(bitmap: Bitmap) {
     internalThumbnail.value?.recycle()
     internalThumbnail.value = bitmap
-  }
-
-  private fun asyncFontEmitter(async: Fonts.FontResult.Async): Observable<Typeface> {
-    return Observable.create {
-      it.onNext(async.placeholder)
-
-      val listener = object : FutureTaskListener<Typeface> {
-        override fun onSuccess(result: Typeface) {
-          it.onNext(result)
-          it.onComplete()
-        }
-
-        override fun onFailure(exception: ExecutionException?) {
-          Log.w(TAG, "Failed to load remote font.", exception)
-          it.onComplete()
-        }
-      }
-
-      it.setCancellable {
-        async.future.removeListener(listener)
-      }
-
-      async.future.addListener(listener)
-    }
   }
 
   override fun onCleared() {
@@ -138,8 +115,26 @@ class TextStoryPostCreationViewModel : ViewModel() {
     store.update { it.copy(backgroundColor = TextStoryBackgroundColors.cycleBackgroundColor(it.backgroundColor)) }
   }
 
-  fun setLinkPreview(url: String) {
+  fun setLinkPreview(url: String?) {
     store.update { it.copy(linkPreviewUri = url) }
+  }
+
+  fun setTemporaryBody(temporaryBody: String) {
+    temporaryBodySubject.onNext(temporaryBody)
+  }
+
+  fun send(contacts: Set<ContactSearchKey>, linkPreview: LinkPreview?): Single<TextStoryPostSendResult> {
+    return repository.send(
+      contacts,
+      store.state,
+      linkPreview
+    )
+  }
+
+  class Factory(private val repository: TextStoryPostSendRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+      return modelClass.cast(TextStoryPostCreationViewModel(repository)) as T
+    }
   }
 
   companion object {

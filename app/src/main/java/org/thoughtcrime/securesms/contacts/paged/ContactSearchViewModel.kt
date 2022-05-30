@@ -86,7 +86,7 @@ class ContactSearchViewModel(
     return selectionStore.state
   }
 
-  fun addToVisibleGroupStories(groupStories: Set<ContactSearchKey.Story>) {
+  fun addToVisibleGroupStories(groupStories: Set<ContactSearchKey.RecipientSearchKey.Story>) {
     configurationStore.update { state ->
       state.copy(
         groupStories = state.groupStories + groupStories.map {
@@ -98,7 +98,7 @@ class ContactSearchViewModel(
   }
 
   class Factory(private val selectionLimits: SelectionLimits, private val repository: ContactSearchRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
       return modelClass.cast(ContactSearchViewModel(selectionLimits, repository)) as T
     }
   }

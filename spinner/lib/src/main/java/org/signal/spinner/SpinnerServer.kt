@@ -14,6 +14,8 @@ import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Queue
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -26,7 +28,7 @@ import kotlin.math.min
  */
 internal class SpinnerServer(
   private val application: Application,
-  private val deviceInfo: Map<String, String>,
+  deviceInfo: Map<String, String>,
   private val databases: Map<String, DatabaseConfig>
 ) : NanoHTTPD(5000) {
 
@@ -34,12 +36,15 @@ internal class SpinnerServer(
     private val TAG = Log.tag(SpinnerServer::class.java)
   }
 
+  private val deviceInfo: Map<String, String> = deviceInfo.filterKeys { !it.startsWith(Spinner.KEY_PREFIX) }
+  private val environment: String = deviceInfo[Spinner.KEY_ENVIRONMENT] ?: "UNKNOWN"
+
   private val handlebars: Handlebars = Handlebars(AssetTemplateLoader(application)).apply {
     registerHelper("eq", ConditionalHelpers.eq)
     registerHelper("neq", ConditionalHelpers.neq)
   }
 
-  private val recentSql: MutableMap<String, MutableList<QueryItem>> = mutableMapOf()
+  private val recentSql: MutableMap<String, Queue<QueryItem>> = mutableMapOf()
   private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz", Locale.US)
 
   override fun serve(session: IHTTPSession): Response {
@@ -70,11 +75,11 @@ internal class SpinnerServer(
   }
 
   fun onSql(dbName: String, sql: String) {
-    val commands: MutableList<QueryItem> = recentSql[dbName] ?: mutableListOf()
+    val commands: Queue<QueryItem> = recentSql[dbName] ?: ConcurrentLinkedQueue()
 
     commands += QueryItem(System.currentTimeMillis(), sql)
-    if (commands.size > 100) {
-      commands.removeAt(0)
+    if (commands.size > 500) {
+      commands.remove()
     }
 
     recentSql[dbName] = commands
@@ -84,6 +89,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "overview",
       OverviewPageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -99,6 +105,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "browse",
       BrowsePageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -129,6 +136,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "browse",
       BrowsePageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -151,6 +159,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "query",
       QueryPageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -171,6 +180,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "recent",
       RecentPageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -188,6 +198,7 @@ internal class SpinnerServer(
     return renderTemplate(
       "query",
       QueryPageModel(
+        environment = environment,
         deviceInfo = deviceInfo,
         database = dbName,
         databases = databases.keys.toList(),
@@ -249,7 +260,11 @@ internal class SpinnerServer(
       val row = mutableListOf<String>()
       for (i in 0 until numColumns) {
         val columnName: String = getColumnName(i)
-        row += transformers[i].transform(null, columnName, this)
+        try {
+          row += transformers[i].transform(null, columnName, this)
+        } catch (e: Exception) {
+          row += "*Failed to Transform*\n\n${DefaultColumnTransformer.transform(null, columnName, this)}"
+        }
       }
 
       rows += row
@@ -341,40 +356,51 @@ internal class SpinnerServer(
     return params[name]
   }
 
+  interface PrefixPageData {
+    val environment: String
+    val deviceInfo: Map<String, String>
+    val database: String
+    val databases: List<String>
+  }
+
   data class OverviewPageModel(
-    val deviceInfo: Map<String, String>,
-    val database: String,
-    val databases: List<String>,
+    override val environment: String,
+    override val deviceInfo: Map<String, String>,
+    override val database: String,
+    override val databases: List<String>,
     val tables: List<TableInfo>,
     val indices: List<IndexInfo>,
     val triggers: List<TriggerInfo>,
     val queryResult: QueryResult? = null
-  )
+  ) : PrefixPageData
 
   data class BrowsePageModel(
-    val deviceInfo: Map<String, String>,
-    val database: String,
-    val databases: List<String>,
+    override val environment: String,
+    override val deviceInfo: Map<String, String>,
+    override val database: String,
+    override val databases: List<String>,
     val tableNames: List<String>,
     val table: String? = null,
     val queryResult: QueryResult? = null,
     val pagingData: PagingData? = null,
-  )
+  ) : PrefixPageData
 
   data class QueryPageModel(
-    val deviceInfo: Map<String, String>,
-    val database: String,
-    val databases: List<String>,
+    override val environment: String,
+    override val deviceInfo: Map<String, String>,
+    override val database: String,
+    override val databases: List<String>,
     val query: String = "",
     val queryResult: QueryResult? = null
-  )
+  ) : PrefixPageData
 
   data class RecentPageModel(
-    val deviceInfo: Map<String, String>,
-    val database: String,
-    val databases: List<String>,
+    override val environment: String,
+    override val deviceInfo: Map<String, String>,
+    override val database: String,
+    override val databases: List<String>,
     val recentSql: List<RecentQuery>?
-  )
+  ) : PrefixPageData
 
   data class QueryResult(
     val columns: List<String>,

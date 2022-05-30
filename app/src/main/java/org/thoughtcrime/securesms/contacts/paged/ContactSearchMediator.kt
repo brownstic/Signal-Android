@@ -12,6 +12,7 @@ class ContactSearchMediator(
   fragment: Fragment,
   recyclerView: RecyclerView,
   selectionLimits: SelectionLimits,
+  displayCheckBox: Boolean,
   mapStateToConfiguration: (ContactSearchState) -> ContactSearchConfiguration
 ) {
 
@@ -23,6 +24,7 @@ class ContactSearchMediator(
 
     ContactSearchItems.register(
       mappingAdapter = adapter,
+      displayCheckBox = displayCheckBox,
       recipientListener = this::toggleSelection,
       storyListener = this::toggleSelection,
       expandListener = { viewModel.expandSection(it.sectionKey) }
@@ -67,7 +69,7 @@ class ContactSearchMediator(
     return viewModel.selectionState
   }
 
-  fun addToVisibleGroupStories(groupStories: Set<ContactSearchKey.Story>) {
+  fun addToVisibleGroupStories(groupStories: Set<ContactSearchKey.RecipientSearchKey.Story>) {
     viewModel.addToVisibleGroupStories(groupStories)
   }
 

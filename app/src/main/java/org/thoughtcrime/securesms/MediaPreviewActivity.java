@@ -55,6 +55,10 @@ import org.signal.core.util.logging.Log;
 import org.thoughtcrime.securesms.animation.DepthPageTransformer;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.components.viewpager.ExtendedOnPageChangedListener;
+import org.thoughtcrime.securesms.components.voice.VoiceNoteMediaController;
+import org.thoughtcrime.securesms.components.voice.VoiceNoteMediaControllerOwner;
+import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragment;
+import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragmentArgs;
 import org.thoughtcrime.securesms.database.MediaDatabase;
 import org.thoughtcrime.securesms.database.MediaDatabase.MediaRecord;
 import org.thoughtcrime.securesms.database.loaders.PagingMediaLoader;
@@ -67,7 +71,6 @@ import org.thoughtcrime.securesms.mms.PartAuthority;
 import org.thoughtcrime.securesms.permissions.Permissions;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientId;
-import org.thoughtcrime.securesms.sharing.ShareActivity;
 import org.thoughtcrime.securesms.util.AttachmentUtil;
 import org.thoughtcrime.securesms.util.DateUtils;
 import org.thoughtcrime.securesms.util.FullscreenHelper;
@@ -87,7 +90,8 @@ import java.util.Objects;
 public final class MediaPreviewActivity extends PassphraseRequiredActivity
   implements LoaderManager.LoaderCallbacks<Pair<Cursor, Integer>>,
              MediaRailAdapter.RailItemListener,
-             MediaPreviewFragment.Events
+             MediaPreviewFragment.Events,
+             VoiceNoteMediaControllerOwner
 {
 
   private final static String TAG = Log.tag(MediaPreviewActivity.class);
@@ -127,6 +131,8 @@ public final class MediaPreviewActivity extends PassphraseRequiredActivity
   private MediaDatabase.Sorting sorting;
   private FullscreenHelper      fullscreenHelper;
 
+  private VoiceNoteMediaController voiceNoteMediaController;
+
   private @Nullable Cursor cursor = null;
 
   public static @NonNull Intent intentFromMediaRecord(@NonNull Context context,
@@ -159,6 +165,7 @@ public final class MediaPreviewActivity extends PassphraseRequiredActivity
 
     setSupportActionBar(findViewById(R.id.toolbar));
 
+    voiceNoteMediaController = new VoiceNoteMediaController(this);
     viewModel = ViewModelProviders.of(this).get(MediaPreviewViewModel.class);
 
     fullscreenHelper = new FullscreenHelper(this);
@@ -288,7 +295,7 @@ public final class MediaPreviewActivity extends PassphraseRequiredActivity
 
     anchorMarginsToBottomInsets(detailsContainer);
 
-    fullscreenHelper.configureToolbarSpacer(findViewById(R.id.toolbar_cutout_spacer));
+    fullscreenHelper.configureToolbarLayout(findViewById(R.id.toolbar_cutout_spacer), findViewById(R.id.toolbar));
 
     fullscreenHelper.showAndHideWithSystemUI(getWindow(), detailsContainer, toolbarLayout);
   }
@@ -388,10 +395,12 @@ public final class MediaPreviewActivity extends PassphraseRequiredActivity
     MediaItem mediaItem = getCurrentMediaItem();
 
     if (mediaItem != null) {
-      Intent composeIntent = new Intent(this, ShareActivity.class);
-      composeIntent.putExtra(Intent.EXTRA_STREAM, mediaItem.uri);
-      composeIntent.setType(mediaItem.type);
-      startActivity(composeIntent);
+      MultiselectForwardFragmentArgs.create(
+          this,
+          mediaItem.uri,
+          mediaItem.type,
+          args -> MultiselectForwardFragment.showBottomSheet(getSupportFragmentManager(), args)
+      );
     }
   }
 
@@ -597,6 +606,15 @@ public final class MediaPreviewActivity extends PassphraseRequiredActivity
   public void mediaNotAvailable() {
     Toast.makeText(this, R.string.MediaPreviewActivity_media_no_longer_available, Toast.LENGTH_LONG).show();
     finish();
+  }
+
+  @Override
+  public void onMediaReady() {
+  }
+
+  @Override
+  public @NonNull VoiceNoteMediaController getVoiceNoteMediaController() {
+    return voiceNoteMediaController;
   }
 
   private class ViewPagerListener extends ExtendedOnPageChangedListener {

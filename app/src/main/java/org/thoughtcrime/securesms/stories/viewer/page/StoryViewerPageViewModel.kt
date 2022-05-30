@@ -4,13 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
+import org.thoughtcrime.securesms.database.AttachmentDatabase
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.util.livedata.Store
+import org.thoughtcrime.securesms.util.rx.RxStore
 import java.util.Optional
 import kotlin.math.max
 import kotlin.math.min
@@ -24,7 +27,7 @@ class StoryViewerPageViewModel(
   private val repository: StoryViewerPageRepository
 ) : ViewModel() {
 
-  private val store = Store(StoryViewerPageState())
+  private val store = RxStore(StoryViewerPageState())
   private val disposables = CompositeDisposable()
   private val storyViewerDialogSubject: Subject<Optional<StoryViewerDialog>> = PublishSubject.create()
 
@@ -34,7 +37,7 @@ class StoryViewerPageViewModel(
 
   val groupDirectReplyObservable: Observable<Optional<StoryViewerDialog>> = storyViewerDialogSubject
 
-  val state: LiveData<StoryViewerPageState> = store.stateLiveData
+  val state: Flowable<StoryViewerPageState> = store.stateFlowable
 
   fun getStateSnapshot(): StoryViewerPageState = store.state
 
@@ -46,8 +49,14 @@ class StoryViewerPageViewModel(
     disposables.clear()
     disposables += repository.getStoryPostsFor(recipientId).subscribe { posts ->
       store.update { state ->
+        var isDisplayingInitialState = false
         val startIndex = if (state.posts.isEmpty() && initialStoryId > 0) {
           val initialIndex = posts.indexOfFirst { it.id == initialStoryId }
+          isDisplayingInitialState = initialIndex > -1
+          initialIndex.takeIf { it > -1 } ?: state.selectedPostIndex
+        } else if (state.posts.isEmpty()) {
+          val initialPost = getNextUnreadPost(posts)
+          val initialIndex = initialPost?.let { posts.indexOf(it) } ?: -1
           initialIndex.takeIf { it > -1 } ?: state.selectedPostIndex
         } else {
           state.selectedPostIndex
@@ -56,7 +65,8 @@ class StoryViewerPageViewModel(
         state.copy(
           posts = posts,
           replyState = resolveSwipeToReplyState(state, startIndex),
-          selectedPostIndex = startIndex
+          selectedPostIndex = startIndex,
+          isDisplayingInitialState = isDisplayingInitialState
         )
       }
     }
@@ -70,11 +80,15 @@ class StoryViewerPageViewModel(
     return repository.hideStory(recipientId)
   }
 
+  fun markViewed(storyPost: StoryPost) {
+    repository.markViewed(storyPost)
+  }
+
   fun setSelectedPostIndex(index: Int) {
     val selectedPost = getPostAt(index)
 
-    if (selectedPost != null) {
-      repository.markViewed(selectedPost)
+    if (selectedPost != null && selectedPost.content.transferState != AttachmentDatabase.TRANSFER_PROGRESS_DONE) {
+      disposables += repository.forceDownload(selectedPost).subscribe()
     }
 
     store.update {
@@ -86,13 +100,28 @@ class StoryViewerPageViewModel(
   }
 
   fun goToNextPost() {
+    if (store.state.posts.isEmpty()) {
+      return
+    }
+
     val postIndex = store.state.selectedPostIndex
-    setSelectedPostIndex(postIndex + 1)
+    val nextUnreadPost: StoryPost? = getNextUnreadPost(store.state.posts.drop(postIndex + 1))
+    if (nextUnreadPost == null) {
+      setSelectedPostIndex(postIndex + 1)
+    } else {
+      setSelectedPostIndex(store.state.posts.indexOf(nextUnreadPost))
+    }
   }
 
   fun goToPreviousPost() {
+    if (store.state.posts.isEmpty()) {
+      return
+    }
+
     val postIndex = store.state.selectedPostIndex
-    setSelectedPostIndex(max(0, postIndex - 1))
+    val minIndex = if (store.state.isFirstPage) 0 else -1
+
+    setSelectedPostIndex(max(minIndex, postIndex - 1))
   }
 
   fun getRestartIndex(): Int {
@@ -112,7 +141,7 @@ class StoryViewerPageViewModel(
   }
 
   fun forceDownloadSelectedPost() {
-    repository.forceDownload(getPost())
+    disposables += repository.forceDownload(getPost()).subscribe()
   }
 
   fun startDirectReply(storyId: Long, recipientId: RecipientId) {
@@ -129,6 +158,10 @@ class StoryViewerPageViewModel(
 
   fun setIsDisplayingSlate(isDisplayingSlate: Boolean) {
     storyViewerPlaybackStore.update { it.copy(isDisplayingSlate = isDisplayingSlate) }
+  }
+
+  fun setIsFirstPage(isFirstPage: Boolean) {
+    store.update { it.copy(isFirstPage = isFirstPage) }
   }
 
   fun setIsSelectedPage(isSelectedPage: Boolean) {
@@ -175,6 +208,10 @@ class StoryViewerPageViewModel(
     storyViewerPlaybackStore.update { it.copy(isDisplayingLinkPreviewTooltip = isDisplayingLinkPreviewTooltip) }
   }
 
+  fun setIsRunningSharedElementAnimation(isRunningSharedElementAnimation: Boolean) {
+    storyViewerPlaybackStore.update { it.copy(isRunningSharedElementAnimation = isRunningSharedElementAnimation) }
+  }
+
   private fun resolveSwipeToReplyState(state: StoryViewerPageState, index: Int): StoryViewerPageState.ReplyState {
     if (index !in state.posts.indices) {
       return StoryViewerPageState.ReplyState.NONE
@@ -191,12 +228,16 @@ class StoryViewerPageViewModel(
     }
   }
 
+  private fun getNextUnreadPost(list: List<StoryPost>): StoryPost? {
+    return list.firstOrNull { !it.hasSelfViewed }
+  }
+
   fun getPostAt(index: Int): StoryPost? {
     return store.state.posts.getOrNull(index)
   }
 
   class Factory(private val recipientId: RecipientId, private val initialStoryId: Long, private val repository: StoryViewerPageRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
       return modelClass.cast(StoryViewerPageViewModel(recipientId, initialStoryId, repository)) as T
     }
   }

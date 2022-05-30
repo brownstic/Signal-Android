@@ -131,6 +131,12 @@
             android:layout="@layout/conversation_item_sent_document" />
 
         <ViewStub
+            android:id="@+id/gift_view_stub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout="@layout/conversation_item_sent_gift" />
+
+        <ViewStub
             android:id="@+id/revealable_view_stub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -191,18 +197,6 @@
             app:footer_text_color="@color/signal_text_secondary" />
 
     </org.thoughtcrime.securesms.conversation.ConversationItemBodyBubble>
-
-    <org.thoughtcrime.securesms.components.emoji.EmojiImageView
-        android:id="@+id/story_reaction_emoji"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_alignEnd="@id/body_bubble"
-        android:layout_alignBottom="@id/body_bubble"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="24dp"
-        android:visibility="gone"
-        tools:src="@drawable/ic_emoji"
-        tools:visibility="visible" />
 
     <org.thoughtcrime.securesms.components.AlertView
         android:id="@+id/indicators_parent"

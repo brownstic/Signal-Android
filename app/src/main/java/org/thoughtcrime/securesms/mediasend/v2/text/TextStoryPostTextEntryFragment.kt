@@ -20,6 +20,7 @@ import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.updateLayoutParams
+import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.viewModels
 import androidx.transition.TransitionManager
@@ -112,17 +113,22 @@ class TextStoryPostTextEntryFragment : KeyboardEntryDialogFragment(
     input.doOnTextChanged { _, _, _, _ ->
       presentHint()
     }
+    input.doAfterTextChanged { text ->
+      viewModel.setTemporaryBody(text?.toString() ?: "")
+    }
     input.setText(viewModel.getBody())
   }
 
   private fun presentHint() {
     if (TextUtils.isEmpty(input.text)) {
+      input.alpha = 0.6f
       if (input.filters.contains(allCapsFilter)) {
-        input.hint = getString(R.string.TextStoryPostTextEntryFragment__add_text).toUpperCase(Locale.getDefault())
+        input.hint = getString(R.string.TextStoryPostTextEntryFragment__add_text).uppercase(Locale.getDefault())
       } else {
         input.setHint(R.string.TextStoryPostTextEntryFragment__add_text)
       }
     } else {
+      input.alpha = 1f
       input.hint = ""
     }
   }
