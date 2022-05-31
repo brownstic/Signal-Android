@@ -71,12 +71,21 @@ class AppSettingsFragment : DSLSettingsFragment(R.string.text_secure_normal__men
       )
 
       if (FeatureFlags.internalUser()) {
-        customPref(
-          PaymentsPreference(
-            unreadCount = state.unreadPaymentsCount
-          ) {
-            findNavController().safeNavigate(R.id.action_appSettingsFragment_to_paymentsActivity)
-          }
+
+        clickPref(
+          title = DSLSettingsText.from(R.string.preferences__donate_to_signal),
+          icon = DSLSettingsIcon.from(R.drawable.ic_heart_24),
+          iconEnd = if (state.hasExpiredGiftBadge) DSLSettingsIcon.from(R.drawable.ic_info_solid_24, R.color.signal_accent_primary) else null,
+          onClick = {
+            findNavController().safeNavigate(AppSettingsFragmentDirections.actionAppSettingsFragmentToManageDonationsFragment())
+          },
+          onLongClick = this@AppSettingsFragment::copySubscriberIdToClipboard
+        )
+      } else {
+        externalLinkPref(
+          title = DSLSettingsText.from(R.string.app_name),
+          icon = DSLSettingsIcon.from(R.drawable.ic_heart_24),
+          linkId = R.string.install_url
         )
       }
 
@@ -124,7 +133,7 @@ class AppSettingsFragment : DSLSettingsFragment(R.string.text_secure_normal__men
 
       dividerPref()
 
-      if (SignalStore.paymentsValues().paymentsAvailability.showPaymentsMenu()) {
+      /*if (SignalStore.paymentsValues().paymentsAvailability.showPaymentsMenu()) {
         customPref(
           PaymentsPreference(
             unreadCount = state.unreadPaymentsCount
@@ -134,7 +143,7 @@ class AppSettingsFragment : DSLSettingsFragment(R.string.text_secure_normal__men
         )
 
         dividerPref()
-      }
+      }*/
 
       clickPref(
         title = DSLSettingsText.from(R.string.preferences__help),
@@ -151,42 +160,6 @@ class AppSettingsFragment : DSLSettingsFragment(R.string.text_secure_normal__men
           findNavController().safeNavigate(R.id.action_appSettingsFragment_to_inviteActivity)
         }
       )
-
-      if (FeatureFlags.internalUser()) {
-        customPref(
-          SubscriptionPreference(
-            title = DSLSettingsText.from(
-              if (state.hasActiveSubscription) {
-                R.string.preferences__subscription
-              } else {
-                R.string.preferences__become_a_signal_sustainer
-              }
-            ),
-            icon = DSLSettingsIcon.from(R.drawable.ic_heart_24),
-            isActive = state.hasActiveSubscription,
-            onClick = { isActive ->
-              if (isActive) {
-                findNavController().safeNavigate(AppSettingsFragmentDirections.actionAppSettingsFragmentToManageDonationsFragment())
-              } else {
-                findNavController().safeNavigate(AppSettingsFragmentDirections.actionAppSettingsFragmentToSubscribeFragment())
-              }
-            }
-          )
-        )
-        clickPref(
-          title = DSLSettingsText.from(R.string.preferences__signal_boost),
-          icon = DSLSettingsIcon.from(R.drawable.ic_boost_24),
-          onClick = {
-            findNavController().safeNavigate(AppSettingsFragmentDirections.actionAppSettingsFragmentToBoostsFragment())
-          }
-        )
-      } else {
-        externalLinkPref(
-          title = DSLSettingsText.from(R.string.preferences__donate_to_signal),
-          icon = DSLSettingsIcon.from(R.drawable.ic_heart_24),
-          linkId = R.string.donate_url
-        )
-      }
 
       if (FeatureFlags.internalUser()) {
         dividerPref()

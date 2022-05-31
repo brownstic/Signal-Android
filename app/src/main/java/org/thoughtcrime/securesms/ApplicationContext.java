@@ -25,6 +25,11 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
+import com.facebook.ads.AudienceNetworkAds;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.AdapterStatus;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.security.ProviderInstaller;
 import com.onesignal.OneSignal;
 
@@ -98,6 +103,7 @@ import org.thoughtcrime.securesms.util.dynamiclanguage.DynamicLanguageContextWra
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.security.Security;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
@@ -161,6 +167,8 @@ public class ApplicationContext extends MultiDexApplication implements AppForegr
                             .addBlocking("event-bus", () -> EventBus.builder().logNoSubscriberMessages(false).installDefaultEventBus())
                             .addBlocking("app-dependencies", this::initializeAppDependencies)
                             .addBlocking("notification-channels", () -> NotificationChannels.create(this))
+                            //Added
+                            .addBlocking("initializeGoogleAdmobSDK", this::initializeGoogleAdmobSDK)
                             .addBlocking("first-launch", this::initializeFirstEverAppLaunch)
                             .addBlocking("app-migrations", this::initializeApplicationMigrations)
                             .addBlocking("ring-rtc", this::initializeRingRtc)
@@ -284,6 +292,22 @@ public class ApplicationContext extends MultiDexApplication implements AppForegr
     if (conscryptPosition < 0) {
       Log.w(TAG, "Did not install Conscrypt provider. May already be present.");
     }
+  }
+
+  //Added AdmobAdsInitializer
+  private void initializeGoogleAdmobSDK(){
+    MobileAds.initialize (this, new OnInitializationCompleteListener() {
+      @Override
+      public void onInitializationComplete( InitializationStatus initializationStatus ) {
+        Log.w(TAG, "AdMob Sdk Initialized: "+ initializationStatus);
+
+        Map<String, AdapterStatus> statusMap = initializationStatus.getAdapterStatusMap();
+        for (String adapterClass : statusMap.keySet()) {
+          AdapterStatus status = statusMap.get(adapterClass);
+        }
+      }
+    });
+    AudienceNetworkAds.initialize(this);
   }
 
   private void initializeLogging() {

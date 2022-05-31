@@ -67,8 +67,8 @@ ktlint {
     version = "0.43.2"
 }
 
-def canonicalVersionCode = 4
-def canonicalVersionName = "1.0.1"
+def canonicalVersionCode = 6
+def canonicalVersionName = "1.0.2"
 
 def postFixSize = 100
 def abiPostFix = ['universal'   : 0,
@@ -443,12 +443,19 @@ dependencies {
         exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
     }*/
 
-    //Added
+    //Added Begins
     implementation platform('com.google.firebase:firebase-bom:29.3.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
 
     implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+
+    //Admob
+    implementation 'com.google.android.gms:play-services-ads:21.0.0'
+    implementation 'com.google.ads.mediation:facebook:6.11.0.0'
+    implementation project(':nativetemplates')
+
+    //Added End
 
     implementation libs.google.play.services.maps
     implementation libs.google.play.services.auth

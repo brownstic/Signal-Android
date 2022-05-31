@@ -71,6 +71,27 @@ import com.google.android.material.animation.ArgbEvaluatorCompat;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+//Added
+import android.widget.Button;
+import android.widget.FrameLayout;
+
+//Google Mediation
+import com.annimon.stream.Stream;
+import com.google.ads.mediation.facebook.FacebookAdapter;
+import com.google.ads.mediation.facebook.FacebookExtras;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.VideoOptions;
+import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.google.android.gms.ads.nativead.NativeAdOptions;
+import com.google.android.material.snackbar.Snackbar;
+
+// important library for Google adMob
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdView;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -225,6 +246,11 @@ public class ConversationListFragment extends MainFragment implements ActionMode
   private   Stopwatch                             startupStopwatch;
   private   ConversationListTabsViewModel         conversationListTabsViewModel;
 
+  //Added
+  //Google Admob
+  private NativeAd    nativeAd;
+  private FrameLayout nativeAdPlaceholder;
+
   public static ConversationListFragment newInstance() {
     return new ConversationListFragment();
   }
@@ -264,6 +290,10 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     megaphoneContainer        = new Stub<>(view.findViewById(R.id.megaphone_container));
     paymentNotificationView   = new Stub<>(view.findViewById(R.id.payments_notification));
     voiceNotePlayerViewStub   = new Stub<>(view.findViewById(R.id.voice_note_player));
+
+    //Added
+    //Google Admob
+    nativeAdPlaceholder = view.findViewById(R.id.fl_adplaceholder);
 
     if (FeatureFlags.internalUser()) {
       fab       = view.findViewById(R.id.fab_new);
@@ -313,6 +343,16 @@ public class ConversationListFragment extends MainFragment implements ActionMode
     RatingManager.showRatingDialogIfNecessary(requireContext());
 
     TooltipCompat.setTooltipText(requireCallback().getSearchAction(), getText(R.string.SearchToolbar_search_for_conversations_contacts_and_messages));
+
+    //Google Admob
+    if (isAdded()) {
+      NativeAdView adView = (NativeAdView) getLayoutInflater()
+          .inflate(R.layout.ad_unified, null);
+      nativeAdPlaceholder.removeAllViews();
+      nativeAdPlaceholder.addView(adView);
+
+      refreshAd();
+    }
 
     requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
       @Override
@@ -592,6 +632,96 @@ public class ConversationListFragment extends MainFragment implements ActionMode
   public void onMegaphoneDialogFragmentRequested(@NonNull DialogFragment dialogFragment) {
     dialogFragment.show(getChildFragmentManager(), "megaphone_dialog");
   }
+
+  //Added Begin
+
+  /**
+   * Google Admob
+   */
+  private void populateUnifiedNativeAdView(NativeAd nativeAd, NativeAdView adView) {
+    // Set other ad assets.
+    adView.setBodyView(adView.findViewById(R.id.ad_body));
+    adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
+    adView.setIconView(adView.findViewById(R.id.ad_app_icon));
+    adView.setHeadlineView(adView.findViewById(R.id.ad_advertiser));
+
+    // Some assets are guaranteed to be in every UnifiedNativeAd.
+    ((TextView) adView.getHeadlineView()).setText(nativeAd.getHeadline());
+    ((TextView) adView.getBodyView()).setText(nativeAd.getBody());
+    ((Button) adView.getCallToActionView()).setText(nativeAd.getCallToAction());
+
+    NativeAd.Image icon = nativeAd.getIcon();
+
+
+    // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
+    // check before trying to display them.
+
+    if (icon == null) {
+      adView.getIconView().setVisibility(View.GONE);
+    } else {
+      ((ImageView) adView.getIconView()).setImageDrawable(nativeAd.getIcon().getDrawable());
+      adView.getIconView().setVisibility(View.VISIBLE);
+    }
+
+    // This method tells the Google Mobile Ads SDK that you have finished populating your
+    // native ad view with this native ad.
+    adView.setNativeAd(nativeAd);
+
+  }
+
+  /**
+   * Creates a request for a new native ad based on the boolean parameters and calls the
+   * corresponding "populate" method when one is successfully returned.
+   */
+  private void refreshAd() {
+
+    AdLoader.Builder builder = new AdLoader.Builder(getActivity(), getString(R.string.admob_native_ad_id));
+    Bundle extras = new FacebookExtras()
+        .setNativeBanner(true)
+        .build();
+
+    builder.forNativeAd(new NativeAd.OnNativeAdLoadedListener() {
+      @Override public void onNativeAdLoaded(@NonNull NativeAd nativeAd) {
+        Log.d(TAG, "OnNativeAdLoaded");
+
+        if (isAdded()) {
+          NativeAdView adView = (NativeAdView) getLayoutInflater()
+              .inflate(R.layout.ad_unified, null);
+          populateUnifiedNativeAdView(nativeAd, adView);
+          nativeAdPlaceholder.removeAllViews();
+          nativeAdPlaceholder.addView(adView);
+        }
+
+      }
+    });
+
+    VideoOptions videoOptions = new VideoOptions.Builder()
+        .build();
+
+    NativeAdOptions adOptions = new NativeAdOptions.Builder()
+        .setVideoOptions(videoOptions)
+        .build();
+
+    builder.withNativeAdOptions(adOptions);
+
+    AdLoader adLoader = builder.withAdListener(new AdListener() {
+      public void onAdFailedToLoad(int errorCode) {
+        Log.i(TAG, "Ad failed to load: " + errorCode);
+      }
+    }).build();
+
+    adLoader.loadAd(new AdRequest.Builder().addNetworkExtrasBundle(FacebookAdapter.class, extras).build());
+
+  }
+
+  @Override
+  public void onDestroy() {
+    if (nativeAd != null) {
+      nativeAd.destroy();
+    }
+    super.onDestroy();
+  }
+  //Added End
 
   private void initializeReminderView() {
     reminderView.get().setOnDismissListener(this::updateReminders);

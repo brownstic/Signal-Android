@@ -96,6 +96,8 @@
                  android:resizeableActivity="true"
                  android:allowBackup="false"
                  android:theme="@style/TextSecure.LightTheme"
+                 android:hardwareAccelerated="true"
+                 android:networkSecurityConfig="@xml/network_security_config"
                  android:largeHeap="true">
 
     <meta-data
@@ -906,6 +908,11 @@
     </receiver>
 
     <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
+        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+        <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-6991932537186982~8753875188"/>
 
 </application>
 </manifest>
