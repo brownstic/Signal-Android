@@ -13,30 +13,24 @@ import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.annimon.stream.Stream;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.signal.core.util.MapUtil;
 import org.signal.core.util.logging.Log;
+import org.signal.libsignal.protocol.util.Pair;
 import org.signal.paging.ObservablePagedData;
 import org.signal.paging.PagedData;
 import org.signal.paging.PagingConfig;
 import org.signal.paging.PagingController;
 import org.signal.paging.ProxyPagingController;
-import org.signal.libsignal.protocol.util.Pair;
 import org.thoughtcrime.securesms.components.settings.app.notifications.profiles.NotificationProfilesRepository;
 import org.thoughtcrime.securesms.conversation.colors.ChatColors;
-import org.thoughtcrime.securesms.conversation.colors.ChatColorsPalette;
+import org.thoughtcrime.securesms.conversation.colors.GroupAuthorNameColorHelper;
 import org.thoughtcrime.securesms.conversation.colors.NameColor;
 import org.thoughtcrime.securesms.database.DatabaseObserver;
-import org.thoughtcrime.securesms.database.GroupDatabase;
-import org.thoughtcrime.securesms.database.SignalDatabase;
 import org.thoughtcrime.securesms.database.model.MessageId;
 import org.thoughtcrime.securesms.database.model.StoryViewState;
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies;
-import org.thoughtcrime.securesms.groups.GroupId;
 import org.thoughtcrime.securesms.mediasend.Media;
 import org.thoughtcrime.securesms.mediasend.MediaRepository;
 import org.thoughtcrime.securesms.notifications.profiles.NotificationProfile;
@@ -50,24 +44,25 @@ import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
 import org.thoughtcrime.securesms.util.livedata.LiveDataUtil;
 import org.thoughtcrime.securesms.util.livedata.Store;
+import org.thoughtcrime.securesms.util.rx.RxStore;
 import org.thoughtcrime.securesms.wallpaper.ChatWallpaper;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.processors.PublishProcessor;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import kotlin.Unit;
 
 public class ConversationViewModel extends ViewModel {
 
@@ -97,8 +92,12 @@ public class ConversationViewModel extends ViewModel {
   private final Observer<ThreadAnimationState>        threadAnimationStateStoreDriver;
   private final NotificationProfilesRepository        notificationProfilesRepository;
   private final MutableLiveData<String>               searchQuery;
-
-  private final Map<GroupId, Set<Recipient>> sessionMemberCache = new HashMap<>();
+  private final GroupAuthorNameColorHelper            groupAuthorNameColorHelper;
+  private final RxStore<ConversationState>            conversationStateStore;
+  private final CompositeDisposable                   disposables;
+  private final BehaviorSubject<Unit>          conversationStateTick;
+  private final RxStore<ThreadCountAggregator> threadCountStore;
+  private final PublishProcessor<Long>         markReadRequestPublisher;
 
   private ConversationIntents.Args args;
   private int                      jumpToPosition;
@@ -123,6 +122,12 @@ public class ConversationViewModel extends ViewModel {
     this.searchQuery                    = new MutableLiveData<>();
     this.recipientId                    = BehaviorSubject.create();
     this.threadId                       = BehaviorSubject.create();
+    this.groupAuthorNameColorHelper     = new GroupAuthorNameColorHelper();
+    this.conversationStateStore         = new RxStore<>(ConversationState.create(), Schedulers.io());
+    this.disposables                    = new CompositeDisposable();
+    this.conversationStateTick          = BehaviorSubject.createDefault(Unit.INSTANCE);
+    this.threadCountStore               = new RxStore<>(ThreadCountAggregator.Init.INSTANCE, Schedulers.computation());
+    this.markReadRequestPublisher       = PublishProcessor.create();
 
     BehaviorSubject<Recipient> recipientCache = BehaviorSubject.create();
 
@@ -131,6 +136,17 @@ public class ConversationViewModel extends ViewModel {
         .distinctUntilChanged()
         .map(Recipient::resolved)
         .subscribe(recipientCache);
+
+    disposables.add(threadCountStore.update(
+        threadId.switchMap(conversationRepository::getThreadRecord).toFlowable(BackpressureStrategy.BUFFER),
+        (record, count) -> record.map(count::updateWith).orElse(count)
+    ));
+
+    conversationStateStore.update(Observable.combineLatest(recipientId, conversationStateTick, (id, tick) -> id)
+                                            .distinctUntilChanged()
+                                            .switchMap(conversationRepository::getSecurityInfo)
+                                            .toFlowable(BackpressureStrategy.LATEST),
+                                  (securityInfo, state) -> state.withSecurityInfo(securityInfo));
 
     BehaviorSubject<ConversationData> conversationMetadata = BehaviorSubject.create();
 
@@ -242,6 +258,10 @@ public class ConversationViewModel extends ViewModel {
     }
   }
 
+  void submitMarkReadRequest(long timestampSince) {
+    markReadRequestPublisher.onNext(timestampSince);
+  }
+
   boolean shouldPlayMessageAnimations() {
     return threadAnimationStateStore.getState().shouldPlayMessageAnimations();
   }
@@ -278,6 +298,47 @@ public class ConversationViewModel extends ViewModel {
 
   void markGiftBadgeRevealed(long messageId) {
     conversationRepository.markGiftBadgeRevealed(messageId);
+  }
+
+  void checkIfMmsIsEnabled() {
+    disposables.add(conversationRepository.checkIfMmsIsEnabled().subscribe(isEnabled -> {
+      conversationStateStore.update(state -> state.withMmsEnabled(true));
+    }));
+  }
+
+  @NonNull Flowable<Long> getMarkReadRequests() {
+    Flowable<ThreadCountAggregator> nonInitialThreadCount = threadCountStore.getStateFlowable().filter(count -> !(count instanceof ThreadCountAggregator.Init)).take(1);
+
+    return Flowable.combineLatest(markReadRequestPublisher.onBackpressureBuffer(), nonInitialThreadCount, (time, count) -> time);
+  }
+
+  @NonNull Flowable<Integer> getThreadUnreadCount() {
+    return threadCountStore.getStateFlowable().map(ThreadCountAggregator::getCount);
+  }
+
+  @NonNull Flowable<ConversationState> getConversationState() {
+    return conversationStateStore.getStateFlowable().observeOn(AndroidSchedulers.mainThread());
+  }
+
+  @NonNull Flowable<ConversationSecurityInfo> getConversationSecurityInfo(@NonNull RecipientId recipientId) {
+    return getConversationState().map(ConversationState::getSecurityInfo)
+                                 .filter(info -> info.isInitialized() && Objects.equals(info.getRecipientId(), recipientId));
+  }
+
+  void updateSecurityInfo() {
+    conversationStateTick.onNext(Unit.INSTANCE);
+  }
+
+  boolean isDefaultSmsApplication() {
+    return conversationStateStore.getState().getSecurityInfo().isDefaultSmsApplication();
+  }
+
+  boolean isPushAvailable() {
+    return conversationStateStore.getState().getSecurityInfo().isPushAvailable();
+  }
+
+  @NonNull ConversationState getConversationStateSnapshot() {
+    return conversationStateStore.getState();
   }
 
   @NonNull LiveData<String> getSearchQuery() {
@@ -345,34 +406,12 @@ public class ConversationViewModel extends ViewModel {
         .observeOn(Schedulers.io())
         .distinctUntilChanged()
         .map(Recipient::resolved)
-        .map(Recipient::getGroupId)
-        .map(groupId -> {
-          if (groupId.isPresent()) {
-            List<Recipient> fullMembers   = SignalDatabase.groups().getGroupMembers(groupId.get(), GroupDatabase.MemberSet.FULL_MEMBERS_INCLUDING_SELF);
-            Set<Recipient>  cachedMembers = MapUtil.getOrDefault(sessionMemberCache, groupId.get(), new HashSet<>());
-
-            cachedMembers.addAll(fullMembers);
-            sessionMemberCache.put(groupId.get(), cachedMembers);
-
-            return cachedMembers;
+        .map(recipient -> {
+          if (recipient.getGroupId().isPresent()) {
+            return groupAuthorNameColorHelper.getColorMap(recipient.getGroupId().get());
           } else {
-            return Collections.<Recipient>emptySet();
+            return Collections.<RecipientId, NameColor>emptyMap();
           }
-        })
-        .map(members -> {
-          List<Recipient> sorted = Stream.of(members)
-                                         .filter(member -> !Objects.equals(member, Recipient.self()))
-                                         .sortBy(Recipient::requireStringId)
-                                         .toList();
-
-          List<NameColor>             names  = ChatColorsPalette.Names.getAll();
-          Map<RecipientId, NameColor> colors = new HashMap<>();
-
-          for (int i = 0; i < sorted.size(); i++) {
-            colors.put(sorted.get(i).getId(), names.get(i % names.size()));
-          }
-
-          return colors;
         })
         .observeOn(AndroidSchedulers.mainThread());
   }
@@ -404,6 +443,7 @@ public class ConversationViewModel extends ViewModel {
     ApplicationDependencies.getDatabaseObserver().unregisterObserver(conversationObserver);
     ApplicationDependencies.getDatabaseObserver().unregisterObserver(messageUpdateObserver);
     ApplicationDependencies.getDatabaseObserver().unregisterObserver(messageInsertObserver);
+    disposables.clear();
     EventBus.getDefault().unregister(this);
   }
 

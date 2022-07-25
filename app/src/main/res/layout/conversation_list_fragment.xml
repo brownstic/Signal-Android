@@ -120,7 +120,7 @@
             app:layout_behavior="org.thoughtcrime.securesms.util.views.SlideUpWithSnackbarBehavior">
 
             <org.thoughtcrime.securesms.components.registration.PulsingFloatingActionButton
-                android:id="@+id/camera_fab_new"
+                android:id="@+id/camera_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -131,13 +131,13 @@
                 android:theme="@style/Widget.Material3.FloatingActionButton.Secondary"
                 android:transitionName="camera_fab"
                 android:visibility="gone"
-                app:backgroundTint="@color/signal_colorSecondaryContainer"
+                app:backgroundTint="@color/signal_colorSurfaceVariant"
                 app:srcCompat="@drawable/ic_camera_outline_24"
-                app:tint="@color/signal_colorOnSecondaryContainer"
+                app:tint="@color/signal_colorOnSurface"
                 tools:visibility="visible" />
 
             <org.thoughtcrime.securesms.components.registration.PulsingFloatingActionButton
-                android:id="@+id/fab_new"
+                android:id="@+id/fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -149,38 +149,7 @@
                 android:visibility="gone"
                 app:backgroundTint="@color/signal_colorPrimaryContainer"
                 app:srcCompat="@drawable/ic_compose_outline_24"
-                app:tint="@color/signal_colorOnPrimaryContainer"
-                tools:visibility="visible" />
-
-            <org.thoughtcrime.securesms.components.registration.PulsingFloatingActionButton
-                android:id="@+id/camera_fab_old"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="20dp"
-                android:contentDescription="@string/conversation_list_fragment__open_camera_description"
-                android:focusable="true"
-                android:theme="@style/Widget.MaterialComponents.FloatingActionButton"
-                android:visibility="gone"
-                app:backgroundTint="@color/conversation_list_camera_button_background"
-                app:srcCompat="@drawable/ic_camera_solid_white_24"
-                app:tint="@color/signal_icon_tint_secondary"
-                tools:visibility="visible" />
-
-            <org.thoughtcrime.securesms.components.registration.PulsingFloatingActionButton
-                android:id="@+id/fab_old"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:contentDescription="@string/conversation_list_fragment__fab_content_description"
-                android:focusable="true"
-                android:theme="@style/Widget.MaterialComponents.FloatingActionButton"
-                android:visibility="gone"
-                app:backgroundTint="@color/core_ultramarine"
-                app:srcCompat="@drawable/ic_compose_solid_24"
-                app:tint="@color/core_white"
+                app:tint="@color/signal_colorOnSurface"
                 tools:visibility="visible" />
 
             <ViewStub
@@ -200,11 +169,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="36dp"
+        android:layout_marginBottom="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

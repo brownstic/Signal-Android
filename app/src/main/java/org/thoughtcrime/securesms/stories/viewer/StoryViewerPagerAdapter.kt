@@ -2,6 +2,7 @@ package org.thoughtcrime.securesms.stories.viewer
 
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.stories.viewer.page.StoryViewerPageFragment
@@ -10,7 +11,9 @@ class StoryViewerPagerAdapter(
   fragment: Fragment,
   private val initialStoryId: Long,
   private val isFromNotification: Boolean,
-  private val groupReplyStartPosition: Int
+  private val groupReplyStartPosition: Int,
+  private val isUnviewedOnly: Boolean,
+  private val isFromInfoContextMenuAction: Boolean
 ) : FragmentStateAdapter(fragment) {
 
   private var pages: List<RecipientId> = emptyList()
@@ -23,10 +26,15 @@ class StoryViewerPagerAdapter(
     DiffUtil.calculateDiff(callback).dispatchUpdatesTo(this)
   }
 
+  override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+    super.onAttachedToRecyclerView(recyclerView)
+    recyclerView.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+  }
+
   override fun getItemCount(): Int = pages.size
 
   override fun createFragment(position: Int): Fragment {
-    return StoryViewerPageFragment.create(pages[position], initialStoryId, isFromNotification, groupReplyStartPosition)
+    return StoryViewerPageFragment.create(pages[position], initialStoryId, isFromNotification, groupReplyStartPosition, isUnviewedOnly, isFromInfoContextMenuAction)
   }
 
   private class Callback(

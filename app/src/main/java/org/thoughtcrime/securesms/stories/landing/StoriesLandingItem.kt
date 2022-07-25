@@ -2,6 +2,7 @@ package org.thoughtcrime.securesms.stories.landing
 
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.text.SpannableStringBuilder
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -19,6 +20,7 @@ import org.thoughtcrime.securesms.mms.GlideApp
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.stories.StoryTextPostModel
 import org.thoughtcrime.securesms.stories.dialogs.StoryContextMenu
+import org.thoughtcrime.securesms.util.ContextUtil
 import org.thoughtcrime.securesms.util.DateUtils
 import org.thoughtcrime.securesms.util.SpanUtil
 import org.thoughtcrime.securesms.util.adapter.mapping.LayoutFactory
@@ -47,7 +49,8 @@ object StoriesLandingItem {
     val onShareStory: (Model) -> Unit,
     val onGoToChat: (Model) -> Unit,
     val onSave: (Model) -> Unit,
-    val onDeleteStory: (Model) -> Unit
+    val onDeleteStory: (Model) -> Unit,
+    val onInfo: (Model, View) -> Unit
   ) : MappingModel<Model> {
     override fun areItemsTheSame(newItem: Model): Boolean {
       return data.storyRecipient.id == newItem.data.storyRecipient.id
@@ -188,6 +191,7 @@ object StoriesLandingItem {
       sender.text = when {
         model.data.storyRecipient.isMyStory -> context.getText(R.string.StoriesLandingFragment__my_stories)
         model.data.storyRecipient.isGroup -> getGroupPresentation(model)
+        model.data.storyRecipient.isReleaseNotes -> getReleaseNotesPresentation(model)
         else -> model.data.storyRecipient.getDisplayName(context)
       }
 
@@ -245,6 +249,15 @@ object StoriesLandingItem {
       )
     }
 
+    private fun getReleaseNotesPresentation(model: Model): CharSequence {
+      val official = ContextUtil.requireDrawable(context, R.drawable.ic_official_20)
+
+      val name = SpannableStringBuilder(model.data.storyRecipient.getDisplayName(context))
+      SpanUtil.appendCenteredImageSpan(name, official, 20, 20)
+
+      return name
+    }
+
     private fun getIndividualPresentation(model: Model): String {
       return if (model.data.primaryStory.messageRecord.isOutgoing) {
         context.getString(R.string.Recipient_you)
@@ -255,7 +268,7 @@ object StoriesLandingItem {
 
     private fun displayContext(model: Model) {
       itemView.isSelected = true
-      StoryContextMenu.show(context, itemView, model) { itemView.isSelected = false }
+      StoryContextMenu.show(context, itemView, storyPreview, model) { itemView.isSelected = false }
     }
 
     private fun clearGlide() {

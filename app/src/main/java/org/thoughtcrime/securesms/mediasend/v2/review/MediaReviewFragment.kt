@@ -26,8 +26,8 @@ import androidx.viewpager2.widget.ViewPager2
 import app.cash.exhaustive.Exhaustive
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import org.thoughtcrime.securesms.R
-import org.thoughtcrime.securesms.TransportOption
 import org.thoughtcrime.securesms.contacts.paged.ContactSearchKey
+import org.thoughtcrime.securesms.conversation.MessageSendType
 import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragment
 import org.thoughtcrime.securesms.conversation.mutiselect.forward.MultiselectForwardFragmentArgs
 import org.thoughtcrime.securesms.mediasend.MediaSendActivityResult
@@ -200,7 +200,7 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
         state.selectedMedia.map { MediaReviewSelectedItem.Model(it, state.focusedMedia == it) } + MediaReviewAddItem.Model
       )
 
-      presentSendButton(state.transportOption)
+      presentSendButton(state.sendType)
       presentPager(state)
       presentAddMessageEntry(state.message)
       presentImageQualityToggle(state.quality)
@@ -283,14 +283,14 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
   private fun presentImageQualityToggle(quality: SentMediaQuality) {
     qualityButton.setImageResource(
       when (quality) {
-        SentMediaQuality.STANDARD -> R.drawable.ic_sq_36
-        SentMediaQuality.HIGH -> R.drawable.ic_hq_36
+        SentMediaQuality.STANDARD -> R.drawable.ic_sq_24
+        SentMediaQuality.HIGH -> R.drawable.ic_hq_24
       }
     )
   }
 
-  private fun presentSendButton(transportOption: TransportOption) {
-    val sendButtonTint = if (transportOption.type == TransportOption.Type.TEXTSECURE) {
+  private fun presentSendButton(sendType: MessageSendType) {
+    val sendButtonTint = if (sendType.usesSignalTransport) {
       R.color.core_ultramarine
     } else {
       R.color.core_grey_50
@@ -448,7 +448,7 @@ class MediaReviewFragment : Fragment(R.layout.v2_media_review_fragment) {
   private fun computeQualityButtonAnimators(state: MediaSelectionState): List<Animator> {
     val slide = listOf(MediaReviewAnimatorController.getSlideInAnimator(qualityButton))
 
-    return slide + if (state.isTouchEnabled && state.selectedMedia.any { MediaUtil.isImageType(it.mimeType) }) {
+    return slide + if (state.isTouchEnabled && !state.isStory && state.selectedMedia.any { MediaUtil.isImageType(it.mimeType) }) {
       listOf(MediaReviewAnimatorController.getFadeInAnimator(qualityButton))
     } else {
       listOf(MediaReviewAnimatorController.getFadeOutAnimator(qualityButton))

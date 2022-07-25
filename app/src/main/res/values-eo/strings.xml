@@ -173,17 +173,22 @@
   <string name="ContactsDatabase_message_s">Mesaĝi al %s</string>
   <string name="ContactsDatabase_signal_call_s">Signal-alvoko %s</string>
   <!--ContactNameEditActivity-->
+  <!--Toolbar title for contact name edit activity-->
   <string name="ContactNameEditActivity_given_name">Persona nomo</string>
   <string name="ContactNameEditActivity_family_name">Familia nomo</string>
   <string name="ContactNameEditActivity_prefix">Prefikso</string>
   <string name="ContactNameEditActivity_suffix">Sufikso</string>
   <string name="ContactNameEditActivity_middle_name">Dua persona nomo</string>
   <!--ContactShareEditActivity-->
+  <!--ContactShareEditActivity toolbar title-->
   <string name="ContactShareEditActivity_type_home">Hejmo</string>
   <string name="ContactShareEditActivity_type_mobile">Poŝtelefono</string>
   <string name="ContactShareEditActivity_type_work">Laboro</string>
   <string name="ContactShareEditActivity_type_missing">Alia</string>
   <string name="ContactShareEditActivity_invalid_contact">Elektita kontakto estis nevalida</string>
+  <!--Content descrption for name edit button on contact share edit activity-->
+  <!--Content description for user avatar in edit activity-->
+  <string name="ContactShareEditActivity__avatar">Avataro</string>
   <!--ConversationItem-->
   <string name="ConversationItem_error_not_sent_tap_for_details">Ne sendita; tuŝetu por detaloj</string>
   <string name="ConversationItem_error_partially_not_delivered">Nekomplete sendita; tuŝetu por detaloj</string>
@@ -218,8 +223,10 @@
   <string name="ConversationActivity_calls_not_supported">Alvokoj ne subtenataj</string>
   <string name="ConversationActivity_this_device_does_not_appear_to_support_dial_actions">Ĉi tiu aparato ŝajne ne subtenas telefonecajn agojn.</string>
   <string name="ConversationActivity_transport_insecure_sms">Nesekura SMS</string>
+  <!--A title for the option to send an SMS with a placeholder to put the name of their SIM card-->
   <string name="ConversationActivity_transport_insecure_mms">Nesekura MMS</string>
-  <string name="ConversationActivity_transport_signal">Signal</string>
+  <!--A title for the option to send an SMS with a placeholder to put the name of their SIM card-->
+  <string name="ConversationActivity_transport_signal">Signal-mesaĝo</string>
   <string name="ConversationActivity_lets_switch_to_signal">Ni ŝanĝiĝu al Signal: %1$s</string>
   <string name="ConversationActivity_specify_recipient">Bonvolu elekti kontakon</string>
   <string name="ConversationActivity_unblock">Malbloki</string>
@@ -270,6 +277,7 @@
     <item quantity="other">%d nelegitaj mesaĝoj</item>
   </plurals>
   <!--ConversationFragment-->
+  <!--Toast text when contacts activity is not found-->
   <plurals name="ConversationFragment_delete_selected_messages">
     <item quantity="one">Ĉu forviŝi la elektitan mesaĝon?</item>
     <item quantity="other">Ĉu forviŝi la elektitajn mesaĝojn?</item>
@@ -344,7 +352,7 @@
     <item quantity="one">Interparolo enarĥivigita</item>
     <item quantity="other">%d interparoloj enarĥivigitaj</item>
   </plurals>
-  <string name="ConversationListFragment_undo">MALFARI</string>
+  <string name="ConversationListFragment_undo">Malfari</string>
   <plurals name="ConversationListFragment_moved_conversations_to_inbox">
     <item quantity="one">Moviĝis interparolo al la ricevujo</item>
     <item quantity="other">Moviĝis %d interparoloj al la ricevujo</item>
@@ -652,8 +660,7 @@
   <string name="AddGroupDetailsFragment__this_field_is_required">Tiu kampo nepras.</string>
   <string name="AddGroupDetailsFragment__group_creation_failed">La kreado de la grupo malsukcesis.</string>
   <string name="AddGroupDetailsFragment__try_again_later">Reprovu poste.</string>
-  <string name="AddGroupDetailsFragment__youve_selected_a_contact_that_doesnt">Vi elektis kontakton, kiu ne subtenas Signal-grupojn, do tiu ĉi grupo estos MMS-a.</string>
-  <string name="AddGroupDetailsFragment_custom_mms_group_names_and_photos_will_only_be_visible_to_you">Propraj MMS-aj grupaj nomoj kaj fotoj nur videblos de vi.</string>
+  <!--Displayed when adding group details to an MMS Group-->
   <string name="AddGroupDetailsFragment__remove">Forviŝi</string>
   <string name="AddGroupDetailsFragment__sms_contact">SMS-kontakto</string>
   <string name="AddGroupDetailsFragment__remove_s_from_this_group">Ĉu forigi %1$s el tiu grupo?</string>
@@ -898,11 +905,14 @@
   <string name="Megaphones_use_sms">Uzi SMS</string>
   <string name="Megaphones_appearance">Aspekto</string>
   <string name="Megaphones_add_photo">Aldoni foton</string>
+  <!--Title of a bottom sheet to render messages that all quote a specific message-->
+  <string name="MessageQuotesBottomSheet_replies">Respondoj</string>
   <!--NotificationBarManager-->
   <string name="NotificationBarManager_signal_call_in_progress">Signal-alvoko fariĝanta</string>
   <string name="NotificationBarManager__establishing_signal_call">Starigo de Signal-alvoko</string>
   <string name="NotificationBarManager__incoming_signal_call">Envena Signal-alvoko</string>
   <string name="NotificationBarManager__incoming_signal_group_call">Envena Signal-grup-alvoko</string>
+  <!--Temporary notification shown when starting the calling service-->
   <string name="NotificationBarManager__stopping_signal_call_service">Haltigo de la alvokoservo de Signal</string>
   <string name="NotificationBarManager__decline_call">Rifuzi alvokon</string>
   <string name="NotificationBarManager__answer_call">Respondi alvokon</string>
@@ -1119,9 +1129,6 @@
   <string name="MessageRecord_a_message_from_s_couldnt_be_delivered">Mesaĝo el %s ne estis liverata.</string>
   <string name="MessageRecord_s_changed_their_phone_number">%1$s ŝanĝis sian telefonnumeron.</string>
   <!--Update item message shown in the release channel when someone is already a sustainer so we ask them if they want to boost.-->
-  <string name="MessageRecord_like_this_new_feature_say_thanks_with_a_boost">Ĉu vi ŝatas tiun funkcion? Diru dankon per „plikonatigo“.</string>
-  <!--Update item message shown in the release channel when someone is not a sustainer so we ask them to consider becoming one-->
-  <string name="MessageRecord_signal_is_powered_by_people_like_you_become_a_sustainer_today">Signal ekzistas pro la subteno de homoj kiel vi. Iĝi donacanto hodiaŭ.</string>
   <!--Group Calling update messages-->
   <string name="MessageRecord_s_started_a_group_call_s">%1$s ekigis grupalvokon · %2$s</string>
   <string name="MessageRecord_s_is_in_the_group_call_s">%1$s estas en la grupalvoko · %2$s</string>
@@ -1684,6 +1691,9 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <!--SearchToolbar-->
   <string name="SearchToolbar_search">Serĉi</string>
   <string name="SearchToolbar_search_for_conversations_contacts_and_messages">Serĉi interparolojn, kontaktojn kaj mesaĝojn</string>
+  <!--Material3 Search Toolbar-->
+  <string name="Material3SearchToolbar__close">Fermi</string>
+  <string name="Material3SearchToolbar__clear">Forviŝi</string>
   <!--ShortcutLauncherActivity-->
   <string name="ShortcutLauncherActivity_invalid_shortcut">Nevalida ŝparvojo</string>
   <!--SingleRecipientNotificationBuilder-->
@@ -1813,9 +1823,7 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="ConversationUpdateItem_view">Montri pli</string>
   <string name="ConversationUpdateItem_the_disappearing_message_time_will_be_set_to_s_when_you_message_them">La daŭro de memviŝontaj mesaĝoj estos %1$s, kiam vi mesaĝos.</string>
   <!--Update item button text to show to boost a feature-->
-  <string name="ConversationUpdateItem_signal_boost">Signal-plikonatigo</string>
-  <!--Update item button text to show to become a sustainer in the release notes channel-->
-  <string name="ConversationUpdateItem_become_a_sustainer">Iĝi donacanto</string>
+  <string name="ConversationUpdateItem_donate">Donaci</string>
   <!--audio_view-->
   <string name="audio_view__play_pause_accessibility_description">Ludi … Paŭzigi</string>
   <string name="audio_view__download_accessibility_description">Elŝuti</string>
@@ -1938,8 +1946,8 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <!--media_overview_activity-->
   <string name="media_overview_activity__no_media">Neniu aŭvidaĵo</string>
   <!--message_recipients_list_item-->
-  <string name="message_recipients_list_item__view">VIDI</string>
-  <string name="message_recipients_list_item__resend">RESENDI</string>
+  <string name="message_recipients_list_item__view">Montri pli</string>
+  <string name="message_recipients_list_item__resend">Resendi</string>
   <!--Displayed in a toast when user long presses an item in MyStories-->
   <string name="MyStoriesFragment__copied_sent_timestamp_to_clipboard">Tempo de sendo kopiita al tondujo.</string>
   <!--Displayed when there are no outgoing stories-->
@@ -2009,10 +2017,10 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="webrtc_answer_decline_button__swipe_down_to_reject">Ŝovumi malsupren por rifuzi</string>
   <!--message_details_header-->
   <string name="message_details_header__issues_need_your_attention">Problemoj bezonas vian atenton.</string>
-  <string name="message_details_header__sent">Sendita:</string>
-  <string name="message_details_header__received">Ricevita:</string>
-  <string name="message_details_header__disappears">Malaperos:</string>
-  <string name="message_details_header__via">Per:</string>
+  <string name="message_details_header_sent">Sendita</string>
+  <string name="message_details_header_received">Ricevita</string>
+  <string name="message_details_header_disappears">Malaperos je</string>
+  <string name="message_details_header_via">Per</string>
   <!--message_details_recipient_header-->
   <string name="message_details_recipient_header__pending_send">Pritraktota</string>
   <string name="message_details_recipient_header__sent_to">Sendita al</string>
@@ -2055,16 +2063,6 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="HelpFragment__debug_log">Sencimiga protokolo:</string>
   <string name="HelpFragment__could_not_upload_logs">Protokolo ne alŝutiĝis</string>
   <string name="HelpFragment__please_be_as_descriptive_as_possible">Priskribu laŭeble precize por helpi al ni kompreni la problemon.</string>
-  <string-array name="HelpFragment__categories_3">
-    <item>— Elekti opcion —</item>
-    <item>Io ne funkcias</item>
-    <item>Peto por nova funkcio</item>
-    <item>Demando</item>
-    <item>Prikomento</item>
-    <item>Alia</item>
-    <item>Pagoj (MobileCoin)</item>
-    <item>Donacoj (subtenantoj kaj Signal-plikonatigo)</item>
-  </string-array>
   <!--ReactWithAnyEmojiBottomSheetDialogFragment-->
   <string name="ReactWithAnyEmojiBottomSheetDialogFragment__this_message">Tiu mesaĝo</string>
   <string name="ReactWithAnyEmojiBottomSheetDialogFragment__recently_used">Lastatempe uzitaj</string>
@@ -2963,6 +2961,8 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="CallParticipant__you">Vi</string>
   <string name="CallParticipant__you_on_another_device">Vi (ĉe alia aparato)</string>
   <string name="CallParticipant__s_on_another_device">%1$s (ĉe alia aparato)</string>
+  <!--WifiToCellularPopupWindow-->
+  <!--Message shown during a call when the WiFi network is unusable, and cellular data starts to be used for the call instead.-->
   <!--DeleteAccountFragment-->
   <string name="DeleteAccountFragment__deleting_your_account_will">Konsekvenco de la forviŝado de via konto:</string>
   <string name="DeleteAccountFragment__enter_your_phone_number">Entajpu vian telefonnumeron</string>
@@ -3438,6 +3438,8 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="MultiselectForwardFragment__share_with">Kunhavigi kun</string>
   <string name="MultiselectForwardFragment__add_a_message">Aldoni mesaĝon</string>
   <string name="MultiselectForwardFragment__faster_forwards">Plusendadoj pli rapidaj</string>
+  <!--Displayed when user selects a video that will be clipped before sharing to a story-->
+  <!--Displayed when user selects a video that cannot be sent as a story-->
   <string name="MultiselectForwardFragment__forwarded_messages_are_now">Plusenditaj mesaĝoj nun tuj sendiĝas. </string>
   <plurals name="MultiselectForwardFragment_send_d_messages">
     <item quantity="one">Sendi %1$d mesaĝon</item>
@@ -3575,8 +3577,11 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="ExpiredBadgeBottomSheetDialogFragment__your_recurring_monthly_donation_was_automatically">Via ĉiumonata donaco aŭtomate nuliĝis pro via tro longa neaktiveco.  Via insigno „%1$s“ ne plu videblas en via profilo.</string>
   <!--Copy displayed when badge expires after payment failure-->
   <string name="ExpiredBadgeBottomSheetDialogFragment__your_recurring_monthly_donation_was_canceled">Via ĉiumonata donaco aŭtomate nuliĝis pro netrakteblo de via pago. Via insigno ne plu videblas en via profilo.</string>
+  <!--Copy displayed when badge expires after a payment failure and we have a displayable charge failure reason-->
   <string name="ExpiredBadgeBottomSheetDialogFragment__you_can">Vi povas daŭrigi uzi Signal-on, sed por subtenu la aplikaĵon kaj rehavi vian insignon, reaboniĝu nun.</string>
   <string name="ExpiredBadgeBottomSheetDialogFragment__renew_subscription">Reabono</string>
+  <!--Button label to send user to Google Pay website-->
+  <string name="ExpiredBadgeBottomSheetDialogFragment__go_to_google_pay">Iri al „Google Pay“</string>
   <string name="CantProcessSubscriptionPaymentBottomSheetDialogFragment__cant_process_subscription_payment">Ne eblas trakti vian subtenanto-pagon.</string>
   <string name="CantProcessSubscriptionPaymentBottomSheetDialogFragment__were_having_trouble">Ni havas problemon kolekti vian pago pri Signal-subtenado. Kontrolu, ĉu via pagmetodo estas en ordo. Se ne, ĝisdatigu ĝin en „Google Pay“. Signal provos retrakti vian pagon post kelkaj tagoj.</string>
   <string name="CantProcessSubscriptionPaymentBottomSheetDialogFragment__dont_show_this_again">Ne plu montri</string>
@@ -3849,12 +3854,15 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="StoriesLandingItem__share">Kunhavigi…</string>
   <!--Context menu option to go to story chat-->
   <string name="StoriesLandingItem__go_to_chat">Iri al la interparolo</string>
+  <!--Context menu option to go to story info-->
+  <string name="StoriesLandingItem__info">Informo</string>
   <!--Label when a story is pending sending-->
   <string name="StoriesLandingItem__sending">Sendo…</string>
   <!--Label when multiple stories are pending sending-->
   <string name="StoriesLandingItem__sending_d">Sendado de %1$d…</string>
-  <!--Label when a story fails to send-->
+  <!--Label when a story fails to send due to networking-->
   <string name="StoriesLandingItem__send_failed">Sendo malsukcesis</string>
+  <!--Label when a story fails to send due to identity mismatch-->
   <!--Status label when a story fails to send indicating user action to retry-->
   <string name="StoriesLandingItem__tap_to_retry">Tuŝeti por reprovi</string>
   <!--Title of dialog confirming decision to hide a story-->
@@ -3880,6 +3888,7 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="MyStories__delete_story">Ĉu forigi la rakonton?</string>
   <!--Message of dialog to confirm deletion of story-->
   <string name="MyStories__this_story_will_be_deleted">Ĝi foriĝos por vi kaj por ĉiuj ricevintoj. </string>
+  <!--Toast shown when story media cannot be saved-->
   <!--Displayed at bottom of story viewer when current item has views-->
   <plurals name="StoryViewerFragment__d_views">
     <item quantity="one">%1$d vido</item>
@@ -3890,6 +3899,7 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
     <item quantity="one">%1$d respondo</item>
     <item quantity="other">%1$d respondoj</item>
   </plurals>
+  <!--Used when view receipts are disabled-->
   <!--Used to join views and replies when both exist on a story item-->
   <string name="StoryViewerFragment__s_s">%1$s %2$s</string>
   <!--Displayed when viewing a post you sent-->
@@ -3898,10 +3908,12 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="StoryViewerPageFragment__s_to_s">%1$s al %2$s</string>
   <!--Displayed when viewing a post from another user with no replies-->
   <string name="StoryViewerPageFragment__reply">Respondi</string>
-  <!--Displayed when viewing a group post from another user with no replies-->
+  <!--Label for the reply button in story viewer, which will launch the group story replies bottom sheet.-->
   <string name="StoryViewerPageFragment__reply_to_group">Respondi al la grupo</string>
   <!--Displayed when a story has no views-->
   <string name="StoryViewsFragment__no_views_yet">Neniu vido</string>
+  <!--Displayed when user has disabled receipts-->
+  <!--Button label displayed when user has disabled receipts-->
   <!--Displayed when a story has no replies yet-->
   <string name="StoryGroupReplyFragment__no_replies_yet">Neniu respondo</string>
   <!--Displayed for each user that reacted to a story when viewing replies-->
@@ -3934,11 +3946,19 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="MyStorySettingsFragment__who_can_see_this_story">Kiu povas vidi tiun rakonton</string>
   <!--Clickable option for selecting people to hide your story from-->
   <string name="MyStorySettingsFragment__hide_story_from">Kaŝi la rakonton al</string>
-  <!--Summary of clickable option displaying how many people you have hidden your story from-->
+  <!--Privacy setting title for sending stories to all your signal connections-->
+  <!--Privacy setting description for sending stories to all your signal connections-->
+  <!--Privacy setting title for sending stories to all except the specified connections-->
+  <!--Privacy setting description for sending stories to all except the specified connections-->
+  <!--Summary of clickable option displaying how many people you have excluded from your story-->
+  <!--Privacy setting title for only sharing your story with specified connections-->
+  <!--Privacy setting description for only sharing your story with specified connections-->
+  <!--Summary of clickable option displaying how many people you have included to send to in your story-->
   <plurals name="MyStorySettingsFragment__d_people">
     <item quantity="one">%1$d homo</item>
     <item quantity="other">%1$d homoj</item>
   </plurals>
+  <!--My story privacy fine print about what the privacy settings are for-->
   <!--Section header for options related to replies and reactions-->
   <string name="MyStorySettingsFragment__replies_amp_reactions">Respondoj kaj reagoj</string>
   <!--Switchable option for allowing replies and reactions on your stories-->
@@ -3947,10 +3967,8 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="MyStorySettingsFragment__let_people_who_can_view_your_story_react_and_reply">Permesi al homoj, kiuj povas vidi vian rakonton, reagi kaj respondi</string>
   <!--Note about default sharing-->
   <string name="MyStorySettingsFragment__hide_your_story_from">Kaŝi vian rakonton al specifaj homoj. Norme, via rakonto kunhaviĝas kun via %1$s</string>
-  <!--Signal connections linked text that opens the Signal Connections sheet-->
-  <string name="MyStorySettingsFragment__signal_connections">Signal-konataro.</string>
+  <!--Signal connections bolded text in the Signal Connections sheet-->
   <!--Displayed at the top of the signal connections sheet. Please remember to insert strong tag as required.-->
-  <string name="SignalConnectionsBottomSheet__signal_connections_are_people"><strong>Signal-Konataro</strong> estas homoj, kiuj vi elektis fidi, ĉar:</string>
   <!--Signal connections sheet bullet point 1-->
   <string name="SignalConnectionsBottomSheet__starting_a_conversation">vi ekinterparolis kun ŝi aŭ li</string>
   <!--Signal connections sheet bullet point 2-->
@@ -3997,8 +4015,9 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <string name="TextStoryPostLinkEntryFragment__share_a_link_with_viewers_of_your_story">Kunhavigi ligilon kun spektantoj de via rakonto</string>
   <!--Hint text for searching for a story text post recipient.-->
   <string name="TextStoryPostSendFragment__search">Serĉi</string>
-  <!--Title for screen allowing user to hide "My Story" entries from specific people-->
-  <string name="HideStoryFromFragment__hide_story_from">Kaŝi la rakonton al…</string>
+  <!--Toast shown when an unexpected error occurs while sending a text story-->
+  <!--Title for screen allowing user to exclude "My Story" entries from specific people-->
+  <!--Title for screen allowing user to only share "My Story" entries with specific people-->
   <!--Done button label for hide story from screen-->
   <string name="HideStoryFromFragment__done">Farita</string>
   <!--Dialog title for first time adding something to a story-->
@@ -4090,8 +4109,7 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   <!--Content description for expand contacts chevron-->
   <string name="ExpandModel__view_more">Vidi pli</string>
   <string name="StoriesLinkPopup__visit_link">Aliri la ligilon</string>
-  <!--Duration and price information-->
-  <!-- Removed by excludeNonTranslatables <string name="GiftRowItem__s_dot_d_day_duration">%1$s · Por %2$d tagoj</string> -->
+  <!--Gift price and duration, formatted as: {price} dot {n} day duration-->
   <!--Tagline for gift row items-->
   <string name="GiftRowItem__send_a_gift_badge">Sendi insignon de donaco</string>
   <!--Headline text on start fragment for gifting a badge-->
@@ -4152,6 +4170,20 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
     <item quantity="one">Grupa rakonto · %1$d vidanto</item>
     <item quantity="other">Grupa rakonto · %1$d vidantoj</item>
   </plurals>
+  <!--Label under name for My Story when first sending to my story-->
+  <!--Label for context menu item to open story settings-->
+  <string name="ContactSearchItems__story_settings">Rakontaj agordoj</string>
+  <!--Label for context menu item to remove a group story from contact results-->
+  <!--Label for context menu item to delete a private story-->
+  <!--Dialog title for removing a group story-->
+  <!--Dialog message for removing a group story-->
+  <!--Dialog action item for removing a group story-->
+  <string name="ContactSearchMediator__remove">Forviŝi</string>
+  <!--Dialog title for deleting a private story-->
+  <string name="ContactSearchMediator__delete_story">Ĉu forigi la rakonton?</string>
+  <!--Dialog message for deleting a private story-->
+  <!--Dialog action item for deleting a private story-->
+  <string name="ContactSearchMediator__delete">Forigi</string>
   <!--Gift expiry days remaining-->
   <plurals name="Gifts__d_days_remaining">
     <item quantity="one">Restas %1$d tago.</item>
@@ -4169,5 +4201,52 @@ Ricevis mesaĝon pri interŝanĝo de ŝlosiloj por nevalida protokola versio.
   </plurals>
   <!--Gift expiry expired-->
   <string name="Gifts__expired">Senvalidiĝinta</string>
+  <!--Label indicating that a user can tap to advance to the next post in a story-->
+  <!--Label indicating swipe direction to skip current story-->
+  <!--Label indicating swipe direction to exit story viewer-->
+  <!--Button label to confirm understanding of story navigation-->
+  <string name="StoryFirstTimeNagivationView__got_it">Bone</string>
+  <!--Content description for vertical context menu button in safety number sheet rows-->
+  <!--Sub-line when a user is verified.-->
+  <!--Sub-line when a user is verified.-->
+  <string name="SafetyNumberRecipientRowItem__verified">Konfirmita</string>
+  <!--Title of safety number changes bottom sheet when showing individual records-->
+  <!--Message of safety number changes bottom sheet when showing individual records-->
+  <!--Title of safety number changes bottom sheet when not showing individual records-->
+  <!--Title of safety number changes bottom sheet when not showing individual records and user has seen review screen-->
+  <!--Message of safety number changes bottom sheet when not showing individual records and user has seen review screen-->
+  <!--Message of safety number changes bottom sheet when not showing individual records-->
+  <!--Menu action to launch safety number verification screen-->
+  <string name="SafetyNumberBottomSheetFragment__verify_safety_number">Kontroli sekurigan numeron</string>
+  <!--Menu action to remove user from story-->
+  <!--Action button at bottom of SafetyNumberBottomSheetFragment to send anyway-->
+  <string name="SafetyNumberBottomSheetFragment__send_anyway">Tamen sendi</string>
+  <!--Action button at bottom of SafetyNumberBottomSheetFragment to review connections-->
+  <!--Empty state copy for SafetyNumberBottomSheetFragment-->
+  <!--Done button on safety number review fragment-->
+  <string name="SafetyNumberReviewConnectionsFragment__done">Farita</string>
+  <!--Title of safety number review fragment-->
+  <!--Message of safety number review fragment-->
+  <!--Section header for 1:1 contacts in review fragment-->
+  <string name="SafetyNumberBucketRowItem__contacts">Kontaktaro</string>
+  <!--Context menu label for distribution list headers in review fragment-->
+  <!--Context menu label for 1:1 contacts to remove from send-->
+  <string name="SafetyNumberReviewConnectionsFragment__remove">Forviŝi</string>
+  <!--Title of initial My Story settings configuration shown when sending to My Story for the first time-->
+  <!--Subtitle of initial My Story settings configuration shown when sending to My Story for the first time-->
+  <!--All connections option for initial My Story settings configuration shown when sending to My Story for the first time-->
+  <!--All connections except option for initial My Story settings configuration shown when sending to My Story for the first time-->
+  <!--Only with selected connections option for initial My Story settings configuration shown when sending to My Story for the first time-->
+  <!--Story info header sent heading-->
+  <string name="StoryInfoHeader__sent">Sendita</string>
+  <!--Story info header received heading-->
+  <string name="StoryInfoHeader__received">Ricevita</string>
+  <!--Story info header file size heading-->
+  <!--Story info "Sent to" header-->
+  <string name="StoryInfoBottomSheetDialogFragment__sent_to">Sendita al</string>
+  <!--Story info "Sent from" header-->
+  <string name="StoryInfoBottomSheetDialogFragment__sent_from">Sendita el</string>
+  <!--Story Info context menu label-->
+  <string name="StoryInfoBottomSheetDialogFragment__info">Informo</string>
   <!--EOF-->
 </resources>
