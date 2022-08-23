@@ -174,7 +174,7 @@ import org.thoughtcrime.securesms.util.SignalLocalMetrics;
 import org.thoughtcrime.securesms.util.SignalProxyUtil;
 import org.thoughtcrime.securesms.util.SnapToTopDataObserver;
 import org.thoughtcrime.securesms.util.StickyHeaderDecoration;
-import org.thoughtcrime.securesms.util.Stopwatch;
+import org.signal.core.util.Stopwatch;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
@@ -570,8 +570,10 @@ public class ConversationListFragment extends MainFragment implements ActionMode
 
   @Override
   public void onShowArchiveClick() {
-    NavHostFragment.findNavController(this)
-                   .navigate(ConversationListFragmentDirections.actionConversationListFragmentToConversationListArchiveFragment());
+    if (viewModel.currentSelectedConversations().isEmpty()) {
+      NavHostFragment.findNavController(this)
+                     .navigate(ConversationListFragmentDirections.actionConversationListFragmentToConversationListArchiveFragment());
+    }
   }
 
   @Override

@@ -9,6 +9,7 @@ import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
 
 import org.signal.contacts.SystemContactsRepository;
+import org.signal.core.util.concurrent.RxExtensions;
 import org.signal.core.util.logging.Log;
 import org.signal.libsignal.protocol.InvalidKeyException;
 import org.signal.libsignal.protocol.util.Pair;
@@ -24,10 +25,9 @@ import org.thoughtcrime.securesms.phonenumbers.PhoneNumberFormatter;
 import org.thoughtcrime.securesms.push.IasTrustStore;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientId;
-import org.thoughtcrime.securesms.util.FeatureFlags;
 import org.thoughtcrime.securesms.util.ProfileUtil;
 import org.signal.core.util.SetUtil;
-import org.thoughtcrime.securesms.util.Stopwatch;
+import org.signal.core.util.Stopwatch;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.profiles.ProfileAndCredential;
@@ -62,7 +62,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 class ContactDiscoveryRefreshV1 {
 
-  private static final String TAG = Log.tag(ContactDiscoveryRefreshV1.class);
+  // Using Log.tag will cut off the version number
+  private static final String TAG = "CdsRefreshV1";
 
   private static final int MAX_NUMBERS = 20_500;
 
@@ -190,23 +191,33 @@ class ContactDiscoveryRefreshV1 {
                                                                                                                    .onErrorReturn(t -> new Pair<>(r, ServiceResponse.forUnknownError(t))))
                                                                                               .toList();
 
-    return Observable.mergeDelayError(requests)
-                     .observeOn(Schedulers.io(), true)
-                     .scan(new UnlistedResult.Builder(), (builder, pair) -> {
-                       Recipient                               recipient = pair.first();
-                       ProfileService.ProfileResponseProcessor processor = new ProfileService.ProfileResponseProcessor(pair.second());
-                       if (processor.hasResult()) {
-                         builder.potentiallyActiveIds.add(recipient.getId());
-                       } else if (processor.genericIoError() || !processor.notFound()) {
-                         builder.retries.add(recipient.getId());
-                         builder.potentiallyActiveIds.add(recipient.getId());
-                       }
+    try {
+      return RxExtensions.safeBlockingGet(
+          Observable.mergeDelayError(requests)
+                    .observeOn(Schedulers.io(), true)
+                    .scan(new UnlistedResult.Builder(), (builder, pair) -> {
+                      Recipient                               recipient = pair.first();
+                      ProfileService.ProfileResponseProcessor processor = new ProfileService.ProfileResponseProcessor(pair.second());
+                      if (processor.hasResult()) {
+                        builder.potentiallyActiveIds.add(recipient.getId());
+                      } else if (processor.genericIoError() || !processor.notFound()) {
+                        builder.retries.add(recipient.getId());
+                        builder.potentiallyActiveIds.add(recipient.getId());
+                      }
 
-                       return builder;
-                     })
-                     .lastOrError()
-                     .map(UnlistedResult.Builder::build)
-                     .blockingGet();
+                      return builder;
+                    })
+                    .lastOrError()
+                    .map(UnlistedResult.Builder::build)
+      );
+    } catch (InterruptedException e) {
+      Log.i(TAG, "Filter for unlisted profile fetches interrupted, fetch via job instead");
+      UnlistedResult.Builder builder = new UnlistedResult.Builder();
+      for (Recipient recipient : possiblyUnlisted) {
+        builder.retries.add(recipient.getId());
+      }
+      return builder.build();
+    }
   }
 
   private static boolean hasCommunicatedWith(@NonNull Recipient recipient) {

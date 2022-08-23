@@ -11,6 +11,7 @@ import org.signal.paging.LivePagedData
 import org.signal.paging.PagedData
 import org.signal.paging.PagingConfig
 import org.signal.paging.PagingController
+import org.thoughtcrime.securesms.database.model.DistributionListPrivacyMode
 import org.thoughtcrime.securesms.groups.SelectionLimits
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.util.livedata.Store
@@ -21,7 +22,9 @@ import org.whispersystems.signalservice.api.util.Preconditions
  */
 class ContactSearchViewModel(
   private val selectionLimits: SelectionLimits,
-  private val contactSearchRepository: ContactSearchRepository
+  private val contactSearchRepository: ContactSearchRepository,
+  private val performSafetyNumberChecks: Boolean,
+  private val safetyNumberRepository: SafetyNumberRepository = SafetyNumberRepository(),
 ) : ViewModel() {
 
   private val disposables = CompositeDisposable()
@@ -75,6 +78,10 @@ class ContactSearchViewModel(
         return@subscribe
       }
 
+      if (performSafetyNumberChecks) {
+        safetyNumberRepository.batchSafetyNumberCheck(newSelectionEntries)
+      }
+
       selectionStore.update { state -> state + newSelectionEntries }
     }
   }
@@ -92,7 +99,7 @@ class ContactSearchViewModel(
       state.copy(
         groupStories = state.groupStories + groupStories.map {
           val recipient = Recipient.resolved(it.recipientId)
-          ContactSearchData.Story(recipient, recipient.participantIds.size)
+          ContactSearchData.Story(recipient, recipient.participantIds.size, DistributionListPrivacyMode.ALL)
         }
       )
     }
@@ -123,9 +130,13 @@ class ContactSearchViewModel(
     controller.value?.onDataInvalidated()
   }
 
-  class Factory(private val selectionLimits: SelectionLimits, private val repository: ContactSearchRepository) : ViewModelProvider.Factory {
+  class Factory(
+    private val selectionLimits: SelectionLimits,
+    private val repository: ContactSearchRepository,
+    private val performSafetyNumberChecks: Boolean
+  ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-      return modelClass.cast(ContactSearchViewModel(selectionLimits, repository)) as T
+      return modelClass.cast(ContactSearchViewModel(selectionLimits, repository, performSafetyNumberChecks)) as T
     }
   }
 }

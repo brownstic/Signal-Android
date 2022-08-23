@@ -41,6 +41,9 @@
   <string name="ApplicationPreferencesActivity_record_payments_recovery_phrase">Ödemeleri kurtarma parolasını kaydet</string>
   <string name="ApplicationPreferencesActivity_record_phrase">Parolayı kaydet</string>
   <string name="ApplicationPreferencesActivity_before_you_can_disable_your_pin">PIN\'inizi devre dışı bırakmadan önce, ödemeler hesabınızın kurtarılmasını güvence altına almak için ödemeler kurtarma parolanızı kaydetmeniz gerekiyor.</string>
+  <!--NumericKeyboardView-->
+  <!--Back button on numeric keyboard-->
+  <string name="NumericKeyboardView__backspace">Geri silme</string>
   <!--AppProtectionPreferenceFragment-->
   <plurals name="AppProtectionPreferenceFragment_minutes">
     <item quantity="one">%d dakika</item>
@@ -174,6 +177,7 @@
   <string name="ContactsDatabase_signal_call_s">Signal Araması %s</string>
   <!--ContactNameEditActivity-->
   <!--Toolbar title for contact name edit activity-->
+  <string name="ContactNameEditActivity__edit_name">İsmi düzenle</string>
   <string name="ContactNameEditActivity_given_name">Ad</string>
   <string name="ContactNameEditActivity_family_name">Soyad</string>
   <string name="ContactNameEditActivity_prefix">Önek</string>
@@ -181,12 +185,14 @@
   <string name="ContactNameEditActivity_middle_name">İkinci ad</string>
   <!--ContactShareEditActivity-->
   <!--ContactShareEditActivity toolbar title-->
+  <string name="ContactShareEditActivity__send_contact">Kişi bilgilerini gönder</string>
   <string name="ContactShareEditActivity_type_home">Ev</string>
   <string name="ContactShareEditActivity_type_mobile">Telefon</string>
   <string name="ContactShareEditActivity_type_work">İş</string>
   <string name="ContactShareEditActivity_type_missing">Diğer</string>
   <string name="ContactShareEditActivity_invalid_contact">Seçilen kişi geçersiz</string>
   <!--Content descrption for name edit button on contact share edit activity-->
+  <string name="ContactShareEditActivity__edit_name">İsmi düzenle</string>
   <!--Content description for user avatar in edit activity-->
   <string name="ContactShareEditActivity__avatar">Resim</string>
   <!--ConversationItem-->
@@ -426,6 +432,18 @@
   <string name="CreateProfileActivity_set_up_your_profile">Profilinizi ayarlayın</string>
   <string name="CreateProfileActivity_signal_profiles_are_end_to_end_encrypted">Profiliniz uçtan uca şifrelidir. Profiliniz ve profildeki değişiklikler, yeni konuşmalar başlattığınızda veya kabul ettiğinizde ve yeni gruplara katıldığınızda kişileriniz tarafından görülebilir.</string>
   <string name="CreateProfileActivity_set_avatar_description">Avatar seçin</string>
+  <!--ProfileCreateFragment-->
+  <!--Displayed at the top of the screen and explains how profiles can be viewed.-->
+  <string name="ProfileCreateFragment__profiles_are_only_visible_to_people_you_message">Profiller yalnızca mesaj attığın kişiler tarafından görülebilir.</string>
+  <!--Title of clickable row to select phone number privacy settings-->
+  <string name="ProfileCreateFragment__who_can_find_me">Beni numaramdan kim bulabilir?</string>
+  <!--WhoCanSeeMyPhoneNumberFragment-->
+  <!--Toolbar title for this screen-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__who_can_find_me_by_number">Beni numaramdan kim bulabilir?</string>
+  <!--Description for radio item stating anyone can see your phone number-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__anyone_who_has">Kişiler listesinde telefon numarana sahip olan herkes, seni Signal\'de görebilir. Diğerleri ise numaranı aratarak seni bulabilir.</string>
+  <!--Description for radio item stating no one will be able to see your phone number-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__nobody_on_signal">Signal\'deki hiç kimse telefon numaranla seni bulamaz.</string>
   <!--ChooseBackupFragment-->
   <string name="ChooseBackupFragment__restore_from_backup">Yedekten geri yüklensin mi?</string>
   <string name="ChooseBackupFragment__restore_your_messages_and_media">İleti ve ileti içeriklerinizi yerel bir yedekten geri yükleyin. Eğer şimdi yüklemezseniz, daha sonra yükleyemezsiniz.</string>
@@ -457,6 +475,8 @@
   <string name="BackupsPreferenceFragment__to_restore_a_backup">Bir yedeği geri yüklemek için, yeni bir Signal kopyası kurun ve \"Yedeği geri yükle\" dokunun ve yedek dosyasını seçin. %1$s</string>
   <string name="BackupsPreferenceFragment__learn_more">Dahasını öğrenin</string>
   <string name="BackupsPreferenceFragment__in_progress">Devam ediyor…</string>
+  <!--Status text shown in backup preferences when verifying a backup-->
+  <string name="BackupsPreferenceFragment__verifying_backup">Yedekleme doğrulanıyor…</string>
   <string name="BackupsPreferenceFragment__d_so_far">Şu ana kadar %1$d…</string>
   <!--Show percentage of completion of backup-->
   <string name="BackupsPreferenceFragment__s_so_far">Şu ana kadar %1$s%% …</string>
@@ -727,6 +747,10 @@
   <string name="ManageProfileFragment_failed_to_set_avatar">Avatar ayarlanamadı</string>
   <string name="ManageProfileFragment_badges">Rozetler</string>
   <string name="ManageProfileFragment__edit_photo">Fotoğrafı düzenle</string>
+  <!--Snackbar message after creating username-->
+  <string name="ManageProfileFragment__username_created">Kullanıcı adı oluşturuldu</string>
+  <!--Snackbar message after copying username-->
+  <string name="ManageProfileFragment__username_copied">Kullanıcı adı kopyalandı</string>
   <!--ManageRecipientActivity-->
   <string name="ManageRecipientActivity_no_groups_in_common">Ortak grubunuz yok</string>
   <plurals name="ManageRecipientActivity_d_groups_in_common">
@@ -1514,6 +1538,12 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <!--SubmitDebugLogActivity-->
   <string name="SubmitDebugLogActivity_edit">Düzenle</string>
   <string name="SubmitDebugLogActivity_done">Tamam</string>
+  <!--Menu option to save a debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_save">Kaydet</string>
+  <!--Error that is show in a toast when we fail to save a debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_failed_to_save">Kaydetme işlemi başarısız</string>
+  <!--Toast that is show to notify that we have saved the debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_save_complete">Kaydetme işlemi tamamlandı</string>
   <string name="SubmitDebugLogActivity_tap_a_line_to_delete_it">Silmek istediğiniz dizeye tıklayın</string>
   <string name="SubmitDebugLogActivity_submit">Gönder</string>
   <string name="SubmitDebugLogActivity_failed_to_submit_logs">Günlükler gönderilemedi</string>
@@ -1567,6 +1597,10 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="ThreadRecord__you_sent_a_gift">Bir hediye gönderdiniz</string>
   <!--Displayed in the notification when the user has opened a received gift-->
   <string name="ThreadRecord__you_redeemed_a_gift_badge">Bir hediye rozeti kullandınız</string>
+  <!--Displayed in the conversation list when someone reacted to your story-->
+  <string name="ThreadRecord__reacted_s_to_your_story">Hikayene %1$s tepki verdi</string>
+  <!--Displayed in the conversation list when you reacted to someone\'s story-->
+  <string name="ThreadRecord__reacted_s_to_their_story">Hikayesine %1$s tepki verdi</string>
   <!--UpdateApkReadyListener-->
   <string name="UpdateApkReadyListener_Signal_update">Signal güncellemesi</string>
   <string name="UpdateApkReadyListener_a_new_version_of_signal_is_available_tap_to_update">Signal\'in yeni sürümü mevcut, güncellemek için dokunun</string>
@@ -1577,6 +1611,8 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="UnverifiedSendDialog_send_message">İleti gönderilsin mi?</string>
   <string name="UnverifiedSendDialog_send">Gönder</string>
   <!--UsernameEditFragment-->
+  <!--Instructional text at the top of the username edit screen-->
+  <string name="UsernameEditFragment__choose_your_username">Kullanıcı adını seç</string>
   <string name="UsernameEditFragment_username">Kullanıcı adı</string>
   <string name="UsernameEditFragment_delete">Sil</string>
   <string name="UsernameEditFragment_successfully_set_username">Kullanıcı adı başarıyla ayarlandı.</string>
@@ -1588,11 +1624,18 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="UsernameEditFragment_usernames_cannot_begin_with_a_number">Kullanıcı adları rakam ile başlayamaz.</string>
   <string name="UsernameEditFragment_username_is_invalid">Kullanıcı adı geçersiz.</string>
   <string name="UsernameEditFragment_usernames_must_be_between_a_and_b_characters">Kullanıcı adları %1$d ve %2$d karakter aralığında olmalıdır.</string>
-  <string name="UsernameEditFragment_usernames_on_signal_are_optional">Signal\'de kullanıcı adları tamamen isteğe bağlıdır. Eğer kullanıcı adı oluşturursanız diğer Signal kullanıcıları bu kullanıcı adı ile sizi bulup telefon numaranızı bilmeden size ulaşabileceklerdir.</string>
+  <!--Explanation about what usernames provide-->
+  <string name="UsernameEditFragment__usernames_let_others_message">Kullanıcı adları, telefon numarana ihtiyaç duymadan diğer kullanıcıların sana mesaj göndermesini sağlar. Adresini gizli tutmaya yardımcı olmak için, kullanıcı adın bir dizi rakamla eşleştirilir.</string>
+  <!--Dialog title for explanation about numbers at the end of the username-->
+  <string name="UsernameEditFragment__what_is_this_number">Bu numara kimin?</string>
+  <string name="UsernameEditFragment__these_digits_help_keep">Bu rakamlar, istenmeyen mesajlar almaman için kullanıcı adının gizli kalmasına yardımcı olur. Kullanıcı adını yalnızca sohbet etmek istediğin kişi ve gruplarla paylaş. Kullanıcı adını değiştirdiğinde, yeni bir rakam setiyle eşleştirilirsin.</string>
   <plurals name="UserNotificationMigrationJob_d_contacts_are_on_signal">
     <item quantity="one">%d kişi Signal\'e katıldı!</item>
     <item quantity="other">%d kişi Signal\'e katıldı!</item>
   </plurals>
+  <!--UsernameShareBottomSheet-->
+  <!--Explanation of what the sheet enables the user to do-->
+  <string name="UsernameShareBottomSheet__copy_or_share_a_username_link">Kullanıcı adı bağlantısını kopyala veya paylaş</string>
   <!--VerifyIdentityActivity-->
   <string name="VerifyIdentityActivity_your_contact_is_running_an_old_version_of_signal">Kişiniz Signal\'in eski bir sürümünü kullanmakta. Güvenlik numaranızı doğrulamadan önce uygulamayı güncellemelerini rica edin.</string>
   <string name="VerifyIdentityActivity_your_contact_is_running_a_newer_version_of_Signal">Kişiniz Signal\'in uyumsuz karekod formatına sahip yeni bir sürümünü kullanıyor. Karşılaştırmak için lütfen güncelleyin.</string>
@@ -2178,6 +2221,8 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <!--Preference label for making one-time donations to Signal-->
   <string name="preferences__one_time_donation">Tek Seferlik Bağış</string>
   <string name="preferences__privacy">Gizlilik</string>
+  <!--Preference label for stories-->
+  <string name="preferences__stories">Hikayeler</string>
   <string name="preferences__mms_user_agent">MMS Kullanıcı Aracı</string>
   <string name="preferences__advanced_mms_access_point_names">Manuel MMS ayarları</string>
   <string name="preferences__mmsc_url">MMSC URL</string>
@@ -2716,10 +2761,16 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="BackupDialog_you_successfully_entered_your_backup_passphrase">Yedek parolanızı doğru girdiniz</string>
   <string name="BackupDialog_passphrase_was_not_correct">Parolanız doğru değil</string>
   <string name="LocalBackupJob_creating_signal_backup">Signal yedeği yaratılıyor…</string>
+  <!--Title for progress notification shown in a system notification while verifying a recent backup.-->
+  <string name="LocalBackupJob_verifying_signal_backup">Signal yedeklemesi doğrulanıyor…</string>
   <string name="LocalBackupJobApi29_backup_failed">Yedekleme başarısız oldu</string>
   <string name="LocalBackupJobApi29_your_backup_directory_has_been_deleted_or_moved">Yedekleme dizininiz silindi veya taşındı.</string>
   <string name="LocalBackupJobApi29_your_backup_file_is_too_large">Yedek dosyası bu sürücüde saklanmak için çok büyük.</string>
   <string name="LocalBackupJobApi29_there_is_not_enough_space">Yedeğinizi kaydetmek için yereli disk alanı yok.</string>
+  <!--Error message shown if a newly created backup could not be verified as accurate-->
+  <string name="LocalBackupJobApi29_your_backup_could_not_be_verified">Son yedekleme oluşturulamadı ve doğrulanamadı. Lütfen yeni bir tane oluştur.</string>
+  <!--Error message shown if a very large attachment is encountered during the backup creation and causes the backup to fail-->
+  <string name="LocalBackupJobApi29_your_backup_contains_a_very_large_file">Yedekleme işlemi, çok büyük bir dosya içeriyor ve yedeklenemiyor. Lütfen bu dosyayı sil ve yeni bir yedekleme oluştur.</string>
   <string name="LocalBackupJobApi29_tap_to_manage_backups">Yedekleri yönetmek için dokunun.</string>
   <string name="ProgressPreference_d_messages_so_far">Şimdiye kadar %d ileti</string>
   <string name="RegistrationActivity_wrong_number">Yanlış numara</string>
@@ -2977,6 +3028,7 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="CallParticipant__s_on_another_device">%1$s (diğer cihazda)</string>
   <!--WifiToCellularPopupWindow-->
   <!--Message shown during a call when the WiFi network is unusable, and cellular data starts to be used for the call instead.-->
+  <string name="WifiToCellularPopupWindow__weak_wifi_switched_to_cellular">Zayıf Wi-Fi. Hücresel veriye geçildi.</string>
   <!--DeleteAccountFragment-->
   <string name="DeleteAccountFragment__deleting_your_account_will">Hesabınızı silmek:</string>
   <string name="DeleteAccountFragment__enter_your_phone_number">Telefon numaranızı girin</string>
@@ -3019,6 +3071,8 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="ShareActivity__send">Gönder</string>
   <string name="ShareActivity__comma_s">, %1$s</string>
   <string name="ShareActivity__sharing_to_multiple_chats_is">Birden fazla konuşmayla paylaşım sadece Signal iletileri için destekleniyor.</string>
+  <!--Toast when the incoming intent is invalid-->
+  <string name="ShareActivity__could_not_get_share_data_from_intent">Amaçlandığı şekilde paylaşım verileri alınamadı.</string>
   <!--MultiShareDialogs-->
   <string name="MultiShareDialogs__failed_to_send_to_some_users">Bazı kullanıcılara gönderilemedi</string>
   <string name="MultiShareDialogs__you_can_only_share_with_up_to">En fazla %1$d konuşmayı paylaşabilirsiniz</string>
@@ -3244,6 +3298,8 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="PrivacySettingsFragment__signal_message_and_calls">Signal iletileri ve aramaları, arama aktarma ve gizli gönderici</string>
   <string name="PrivacySettingsFragment__default_timer_for_new_changes">Yeni konuşmalar için varsayılan zamanlayıcı</string>
   <string name="PrivacySettingsFragment__set_a_default_disappearing_message_timer_for_all_new_chats_started_by_you">Tarafınızca başlatılan tüm yeni iletiler için varsayılan kaybolan ileti zamanlayıcısı ayarlayın.</string>
+  <!--Summary for stories preference to launch into story privacy settings-->
+  <string name="PrivacySettingsFragment__manage_your_stories">Hikayelerini ve onları kimlerin görüntüleyebileceğini yönet</string>
   <!--AdvancedPrivacySettingsFragment-->
   <string name="AdvancedPrivacySettingsFragment__show_status_icon">Durum simgesi göster</string>
   <string name="AdvancedPrivacySettingsFragment__show_an_icon">İletiler gizli gönderici kullanılarak gönderildiğinde ileti detaylarında simge göster.</string>
@@ -3353,6 +3409,8 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="EmojiSearchFragment__no_results_found">Sonuç bulunamadı</string>
   <string name="NotificationsSettingsFragment__unknown_ringtone">Bilinmeyen zil sesi</string>
   <!--ConversationSettingsFragment-->
+  <!--Error toasted when no activity can handle the add contact intent-->
+  <string name="ConversationSettingsFragment__contacts_app_not_found">Kişiler uygulaması bulunamadı</string>
   <string name="ConversationSettingsFragment__send_message">İleti gönder</string>
   <string name="ConversationSettingsFragment__start_video_call">Görüntülü arama başlat</string>
   <string name="ConversationSettingsFragment__start_audio_call">Sesli arama başlat</string>
@@ -3855,10 +3913,12 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="ConversationListTabs__stories">Hikayeler</string>
   <!--String for counts above 99 in conversation list tabs-->
   <string name="ConversationListTabs__99p">99+</string>
+  <!--Menu item on stories landing page-->
+  <string name="StoriesLandingFragment__story_privacy">Hikaye gizliliği</string>
   <!--Title for "My Stories" row item in Stories landing page-->
   <string name="StoriesLandingFragment__my_stories">Hikayelerim</string>
   <!--Subtitle for "My Stories" row item when user has not added stories-->
-  <string name="StoriesLandingFragment__add_a_story">Bir hikaye ekle</string>
+  <string name="StoriesLandingFragment__tap_to_add_a_story">Hikaye eklemek için dokun</string>
   <!--Displayed when there are no stories to display-->
   <string name="StoriesLandingFragment__no_recent_updates_to_show_right_now_tap_plus_to_add_to_your_story">Şu anda gösterilecek yeni güncelleme yok. Hikayenize eklemek için + simgesine dokunun.</string>
   <!--Context menu option to hide a story-->
@@ -3936,6 +3996,14 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="StoryViewsFragment__enable_read_receipts_to_see_whos_viewed_your_story">Hikayelerini kimlerin görüntülediğini görmek için okundu bilgisini etkinleştir.</string>
   <!--Button label displayed when user has disabled receipts-->
   <string name="StoryViewsFragment__go_to_settings">Ayarlara git</string>
+  <!--Dialog action to remove viewer from a story-->
+  <string name="StoryViewsFragment__remove">Kaldır</string>
+  <!--Dialog title when removing a viewer from a story-->
+  <string name="StoryViewsFragment__remove_viewer">Görüntüleyen kaldırılsın mı?</string>
+  <!--Dialog message when removing a viewer from a story-->
+  <string name="StoryViewsFragment__s_will_still_be_able">%1$s bu gönderiyi görmeye devam edebilecek, ancak gelecekte %2$s ile paylaşacağınız gönderileri göremeyecek. </string>
+  <!--Story View context menu action to remove them from a story-->
+  <string name="StoryViewItem__remove_viewer">Görüntüleyeni kaldır</string>
   <!--Displayed when a story has no replies yet-->
   <string name="StoryGroupReplyFragment__no_replies_yet">Henüz yanıt yok</string>
   <!--Displayed for each user that reacted to a story when viewing replies-->
@@ -3954,14 +4022,6 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <string name="StoryGroupReplyItem__copy">Kopyala</string>
   <!--Context menu item to delete a story response-->
   <string name="StoryGroupReplyItem__delete">Sil</string>
-  <!--Story settings page title-->
-  <string name="StorySettingsFragment__story_settings">Hikaye ayarları</string>
-  <!--Story settings private stories heading-->
-  <string name="StorySettingsFragment__private_stories">Özel hikayeler</string>
-  <!--Note at bottom of story settings regarding who can see private stories.-->
-  <string name="StorySettingsFragment__private_stories_can_only_be_viewed">Özel hikayeler yalnızca onlara eklediğiniz kişiler tarafından görüntülenebilir. Hikaye adını yalnızca siz görebilirsiniz.</string>
-  <!--Option label for creating a new private story-->
-  <string name="StorySettingsFragment__new_private_story">Yeni özel hikaye</string>
   <!--Page title for My Story options-->
   <string name="MyStorySettingsFragment__my_story">Hikayem</string>
   <!--Section heading for story visibility-->
@@ -4212,6 +4272,11 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
     <item quantity="one">Grup Hikayesi · %1$d görüntüleyen</item>
     <item quantity="other">Grup Hikayesi · %1$d görüntüleyen</item>
   </plurals>
+  <!--Label under name for my story-->
+  <plurals name="ContactSearchItems__my_story_s_dot_d_viewers">
+    <item quantity="one">%1$s · %2$d görüntüleyen</item>
+    <item quantity="other">%1$s · %2$d görüntüleyen</item>
+  </plurals>
   <!--Label under name for My Story when first sending to my story-->
   <string name="ContactSearchItems__tap_to_choose_your_viewers">İzleyicileri seçmek için dokun</string>
   <!--Label for context menu item to open story settings-->
@@ -4290,6 +4355,10 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <!--Title of safety number review fragment-->
   <string name="SafetyNumberReviewConnectionsFragment__safety_number_changes">Güvenlik numarası değişiklikleri</string>
   <!--Message of safety number review fragment-->
+  <plurals name="SafetyNumberReviewConnectionsFragment__d_recipients_may_have">
+    <item quantity="one">%1$d kişi Signal\'i yeniden yüklemiş veya cihazlarını değiştirmiş olabilir. Yeni güvenlik numarasını onaylamak için kişilerden birine dokun. (Bu işlem isteğe bağlıdır.)</item>
+    <item quantity="other">%1$d kişi Signal\'i yeniden yüklemiş veya cihazlarını değiştirmiş olabilir. Yeni güvenlik numarasını onaylamak için kişilerden birine dokun. (Bu işlem isteğe bağlıdır.)</item>
+  </plurals>
   <!--Section header for 1:1 contacts in review fragment-->
   <string name="SafetyNumberBucketRowItem__contacts">Kişiler</string>
   <!--Context menu label for distribution list headers in review fragment-->
@@ -4311,11 +4380,38 @@ Geçersiz protokol sürümünde anahtar değişim iletisi alındı.</string>
   <!--Story info header received heading-->
   <string name="StoryInfoHeader__received">Alındı</string>
   <!--Story info header file size heading-->
+  <string name="StoryInfoHeader__file_size">Dosya boyutu</string>
   <!--Story info "Sent to" header-->
   <string name="StoryInfoBottomSheetDialogFragment__sent_to">Gönderilen</string>
   <!--Story info "Sent from" header-->
   <string name="StoryInfoBottomSheetDialogFragment__sent_from">Gönderen</string>
   <!--Story Info context menu label-->
   <string name="StoryInfoBottomSheetDialogFragment__info">Bilgi</string>
+  <!--StoriesPrivacySettingsFragment-->
+  <!--Explanation about how stories are deleted and managed-->
+  <string name="StoriesPrivacySettingsFragment__stories_automatically_disappear">Hikayeler 24 saat sonra otomatik olarak kaybolur. Hikayeni kimlerin görüntüleyebileceğini belirle veya belirli izleyiciler veya gruplar için yeni hikayeler oluştur.</string>
+  <!--Preference title to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_off_stories">Hikayeleri kapat</string>
+  <!--Preference summary to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__if_you_opt_out">Hikayeleri devre dışı bırakırsan, artık hikayeleri paylaşamaz veya görüntüleyemezsin.</string>
+  <!--Preference title to turn on stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_on_stories">Hikayeleri etkinleştir</string>
+  <!--Preference summary to turn on stories-->
+  <string name="StoriesPrivacySettingsFragment__share_and_view">Başkalarının hikayelerini paylaş ve görüntüle. Hikayeler 24 saat sonra otomatik olarak kaybolur.</string>
+  <!--Dialog title to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_off_stories_question">Hikayeler kapatılsın mı?</string>
+  <!--Dialog message to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__you_will_no_longer_be_able_to">Artık hikayeleri paylaşamayacak veya görüntüleyemeyeceksin. Yakın zamanda paylaştığın tüm hikayeler, süresi dolana kadar başkaları tarafından görüntülenmeye devam edecek.</string>
+  <!--Page title when launched from stories landing screen-->
+  <string name="StoriesPrivacySettingsFragment__story_privacy">Hikaye gizliliği</string>
+  <!--GroupStorySettingsFragment-->
+  <!--Section header for who can view a group story-->
+  <string name="GroupStorySettingsFragment__who_can_view_this_story">Bu hikayeyi kimler görüntüleyebilir?</string>
+  <!--Explanation of who can view a group story-->
+  <string name="GroupStorySettingsFragment__members_of_the_group_s">\"%1$s\" grubunun üyeleri bu hikayeyi görüntüleyebilir ve yanıtlayabilir. Gruptaki bu sohbet için üyeliği güncelleyebilirsin.</string>
+  <!--Preference label for removing this group story-->
+  <string name="GroupStorySettingsFragment__remove_group_story">Grup hikayesini kaldır</string>
+  <!--Generic title for overflow menus-->
+  <string name="OverflowMenu__overflow_menu">İlave menü</string>
   <!--EOF-->
 </resources>

@@ -41,6 +41,9 @@
   <string name="ApplicationPreferencesActivity_record_payments_recovery_phrase">Lưu lại cụm từ khôi phục thanh toán</string>
   <string name="ApplicationPreferencesActivity_record_phrase">Lưu lại cụm từ</string>
   <string name="ApplicationPreferencesActivity_before_you_can_disable_your_pin">Trước khi bạn có thể tắt mã PIN của mình, bạn phải lưu lại cụm từ khôi phục thanh toán để đảm bảo bạn có thể khôi phục tài khoản thanh toán của bạn.</string>
+  <!--NumericKeyboardView-->
+  <!--Back button on numeric keyboard-->
+  <string name="NumericKeyboardView__backspace">Xoá lùi</string>
   <!--AppProtectionPreferenceFragment-->
   <plurals name="AppProtectionPreferenceFragment_minutes">
     <item quantity="other">%d phút</item>
@@ -173,6 +176,7 @@
   <string name="ContactsDatabase_signal_call_s">Cuộc gọi Signal %s</string>
   <!--ContactNameEditActivity-->
   <!--Toolbar title for contact name edit activity-->
+  <string name="ContactNameEditActivity__edit_name">Sửa tên</string>
   <string name="ContactNameEditActivity_given_name">Tên</string>
   <string name="ContactNameEditActivity_family_name">Họ</string>
   <string name="ContactNameEditActivity_prefix">Danh xưng</string>
@@ -180,12 +184,14 @@
   <string name="ContactNameEditActivity_middle_name">Tên đệm</string>
   <!--ContactShareEditActivity-->
   <!--ContactShareEditActivity toolbar title-->
+  <string name="ContactShareEditActivity__send_contact">Gửi liên hệ</string>
   <string name="ContactShareEditActivity_type_home">Nhà</string>
   <string name="ContactShareEditActivity_type_mobile">Di động</string>
   <string name="ContactShareEditActivity_type_work">Công việc</string>
   <string name="ContactShareEditActivity_type_missing">Khác</string>
   <string name="ContactShareEditActivity_invalid_contact">Liên lạc đã chọn không hợp lệ</string>
   <!--Content descrption for name edit button on contact share edit activity-->
+  <string name="ContactShareEditActivity__edit_name">Sửa tên</string>
   <!--Content description for user avatar in edit activity-->
   <string name="ContactShareEditActivity__avatar">Ảnh đại diện</string>
   <!--ConversationItem-->
@@ -405,6 +411,18 @@
   <string name="CreateProfileActivity_set_up_your_profile">Thiết lập hồ sơ</string>
   <string name="CreateProfileActivity_signal_profiles_are_end_to_end_encrypted">Hồ sơ của bạn được mã hóa đầu cuối. Hồ sơ và các thay đổi sẽ hiển thị với liên hệ trong danh bạ của bạn, khi bạn bắt đầu hoặc chấp nhận cuộc trò chuyện mới, hoặc khi bạn tham gia nhóm mới.</string>
   <string name="CreateProfileActivity_set_avatar_description">Đặt ảnh đại diện</string>
+  <!--ProfileCreateFragment-->
+  <!--Displayed at the top of the screen and explains how profiles can be viewed.-->
+  <string name="ProfileCreateFragment__profiles_are_only_visible_to_people_you_message">Các hồ sơ chỉ hiển thị với những người bạn nhắn tin.</string>
+  <!--Title of clickable row to select phone number privacy settings-->
+  <string name="ProfileCreateFragment__who_can_find_me">Ai có thể tìm tôi bằng số điện thoại?</string>
+  <!--WhoCanSeeMyPhoneNumberFragment-->
+  <!--Toolbar title for this screen-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__who_can_find_me_by_number">Ai có thể tìm tôi bằng số điện thoại?</string>
+  <!--Description for radio item stating anyone can see your phone number-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__anyone_who_has">Người dùng nào có số điện thoại của bạn trong danh bạ sẽ thấy bạn trên Signal. Những người khác có thể tìm thấy bạn với số điện thoại của bạn qua mục tìm kiếm.</string>
+  <!--Description for radio item stating no one will be able to see your phone number-->
+  <string name="WhoCanSeeMyPhoneNumberFragment__nobody_on_signal">Không có ai trên Signal có thể tìm thấy bạn với số điện thoại của bạn.</string>
   <!--ChooseBackupFragment-->
   <string name="ChooseBackupFragment__restore_from_backup">Khôi phục từ bản sao lưu?</string>
   <string name="ChooseBackupFragment__restore_your_messages_and_media">Khôi phục tin nhắn và tệp từ bản sao lưu. Bạn chỉ có thể khôi phục vào lúc này.</string>
@@ -436,6 +454,8 @@
   <string name="BackupsPreferenceFragment__to_restore_a_backup">Để khôi phục bản sao lưu, hãy cài đặt phiên bản mới nhất của Signal. Sau đó, mở ứng dụng và nhấn vào \"Khôi phục bản sao lưu\" rồi chọn vị trí bản sao lưu. %1$s</string>
   <string name="BackupsPreferenceFragment__learn_more">Tìm hiểu thêm</string>
   <string name="BackupsPreferenceFragment__in_progress">Đang thực hiện…</string>
+  <!--Status text shown in backup preferences when verifying a backup-->
+  <string name="BackupsPreferenceFragment__verifying_backup">Đang xác minh bản lưu dự phòng…</string>
   <string name="BackupsPreferenceFragment__d_so_far">Đã được %1$d…</string>
   <!--Show percentage of completion of backup-->
   <string name="BackupsPreferenceFragment__s_so_far">%1$s%% đến giờ…</string>
@@ -688,6 +708,10 @@
   <string name="ManageProfileFragment_failed_to_set_avatar">Không thể đặt ảnh đại diện</string>
   <string name="ManageProfileFragment_badges">Huy hiệu</string>
   <string name="ManageProfileFragment__edit_photo">Tùy chỉnh ảnh</string>
+  <!--Snackbar message after creating username-->
+  <string name="ManageProfileFragment__username_created">Đã tạo tên người dùng</string>
+  <!--Snackbar message after copying username-->
+  <string name="ManageProfileFragment__username_copied">Đã sao chép tên người dùng</string>
   <!--ManageRecipientActivity-->
   <string name="ManageRecipientActivity_no_groups_in_common">Không có nhóm chung</string>
   <plurals name="ManageRecipientActivity_d_groups_in_common">
@@ -1437,6 +1461,12 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <!--SubmitDebugLogActivity-->
   <string name="SubmitDebugLogActivity_edit">Sửa</string>
   <string name="SubmitDebugLogActivity_done">Xong</string>
+  <!--Menu option to save a debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_save">Lưu</string>
+  <!--Error that is show in a toast when we fail to save a debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_failed_to_save">Lưu không thành công</string>
+  <!--Toast that is show to notify that we have saved the debug log file to disk.-->
+  <string name="SubmitDebugLogActivity_save_complete">Lưu hoàn tất</string>
   <string name="SubmitDebugLogActivity_tap_a_line_to_delete_it">Nhấn vào một dòng để xóa nó</string>
   <string name="SubmitDebugLogActivity_submit">Gửi</string>
   <string name="SubmitDebugLogActivity_failed_to_submit_logs">Không thể gửi nhật kí lỗi</string>
@@ -1490,6 +1520,10 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="ThreadRecord__you_sent_a_gift">Bạn đã gửi một món quà</string>
   <!--Displayed in the notification when the user has opened a received gift-->
   <string name="ThreadRecord__you_redeemed_a_gift_badge">Bạn đã nhận một huy hiệu quà tặng</string>
+  <!--Displayed in the conversation list when someone reacted to your story-->
+  <string name="ThreadRecord__reacted_s_to_your_story">Đã bày tỏ cảm xúc %1$s với story của bạn</string>
+  <!--Displayed in the conversation list when you reacted to someone\'s story-->
+  <string name="ThreadRecord__reacted_s_to_their_story">Đã bày tỏ cảm xúc %1$s với story của họ</string>
   <!--UpdateApkReadyListener-->
   <string name="UpdateApkReadyListener_Signal_update">Cập nhật Signal</string>
   <string name="UpdateApkReadyListener_a_new_version_of_signal_is_available_tap_to_update">Đã có phiên bản mới của Signal, nhấn để cập nhật</string>
@@ -1500,6 +1534,8 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="UnverifiedSendDialog_send_message">Gửi tin nhắn?</string>
   <string name="UnverifiedSendDialog_send">Gửi</string>
   <!--UsernameEditFragment-->
+  <!--Instructional text at the top of the username edit screen-->
+  <string name="UsernameEditFragment__choose_your_username">Chọn tên người dùng của bạn</string>
   <string name="UsernameEditFragment_username">Tên người dùng</string>
   <string name="UsernameEditFragment_delete">Xóa</string>
   <string name="UsernameEditFragment_successfully_set_username">Đặt tên người dùng thành công</string>
@@ -1511,10 +1547,17 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="UsernameEditFragment_usernames_cannot_begin_with_a_number">Tên người dùng không thể bắt đầu bằng một số.</string>
   <string name="UsernameEditFragment_username_is_invalid">Tên người dùng không hợp lệ.</string>
   <string name="UsernameEditFragment_usernames_must_be_between_a_and_b_characters">Tên người dùng phải nằm trong khoảng từ %1$d đến %2$d kí tự.</string>
-  <string name="UsernameEditFragment_usernames_on_signal_are_optional">Tên người dùng trên Signal là không bắt buộc. Nếu bạn chọn tạo tên người dùng, những người dùng Signal khác có thể tìm thấy và liên lạc với bạn bằng tên người dùng mà không cần biết số điện thoại của bạn.</string>
+  <!--Explanation about what usernames provide-->
+  <string name="UsernameEditFragment__usernames_let_others_message">Tên người dùng giúp các thành viên khác nhắn tin cho bạn mà không cần có số điện thoại của bạn. Tên người dùng được ghép với một dãy ký tự để giúp giữ bí mật thông tin của bạn.</string>
+  <!--Dialog title for explanation about numbers at the end of the username-->
+  <string name="UsernameEditFragment__what_is_this_number">Số này là gì?</string>
+  <string name="UsernameEditFragment__these_digits_help_keep">Các ký tự này giúp giữ bí mật tên người dùng của bạn giúp bạn tránh các tin nhắn ngoài ý muốn. Chỉ chia sẻ tên người dùng của bạn với những người hoặc nhóm bạn muốn trò chuyện. Nếu bạn đổi tên người dùng, bạn sẽ nhận được một dãy ký tự mới.</string>
   <plurals name="UserNotificationMigrationJob_d_contacts_are_on_signal">
     <item quantity="other">%d liên hệ của bạn đang sử dụng Signal!</item>
   </plurals>
+  <!--UsernameShareBottomSheet-->
+  <!--Explanation of what the sheet enables the user to do-->
+  <string name="UsernameShareBottomSheet__copy_or_share_a_username_link">Sao chép hoặc chia sẻ liên kết tên người dùng</string>
   <!--VerifyIdentityActivity-->
   <string name="VerifyIdentityActivity_your_contact_is_running_an_old_version_of_signal">Đối tác của bạn đang sử dụng phiên bản Signal cũ. Hãy nhắc họ cập nhật trước khi xác minh mã số an toàn.</string>
   <string name="VerifyIdentityActivity_your_contact_is_running_a_newer_version_of_Signal">Đối tác của bạn đang sử dụng phiên bản Signal mới hơn với định dạng mã QR khác. Hãy cập nhật Signal để so sánh.</string>
@@ -2078,6 +2121,8 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <!--Preference label for making one-time donations to Signal-->
   <string name="preferences__one_time_donation">Khoản Ủng hộ Một lần</string>
   <string name="preferences__privacy">Riêng tư</string>
+  <!--Preference label for stories-->
+  <string name="preferences__stories">Các Story</string>
   <string name="preferences__mms_user_agent">MMS User Agent</string>
   <string name="preferences__advanced_mms_access_point_names">Thiết đặt MMS bằng tay</string>
   <string name="preferences__mmsc_url">Đường dẫn MMSC</string>
@@ -2608,10 +2653,16 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="BackupDialog_you_successfully_entered_your_backup_passphrase">Bạn đã điền mật khẩu sao lưu thành công</string>
   <string name="BackupDialog_passphrase_was_not_correct">Mật khẩu không chính xác</string>
   <string name="LocalBackupJob_creating_signal_backup">Đang tạo bản sao lưu Signal…</string>
+  <!--Title for progress notification shown in a system notification while verifying a recent backup.-->
+  <string name="LocalBackupJob_verifying_signal_backup">Đang xác minh bản lưu dự phòng của Signal…</string>
   <string name="LocalBackupJobApi29_backup_failed">Sao lưu thất bại.</string>
   <string name="LocalBackupJobApi29_your_backup_directory_has_been_deleted_or_moved">Thư mục sao lưu của bạn đã bị xoá hoặc dời đi.</string>
   <string name="LocalBackupJobApi29_your_backup_file_is_too_large">Tập tin sao lưu của bạn quá lớn để có thể được lưu trữ trên ổ này.</string>
   <string name="LocalBackupJobApi29_there_is_not_enough_space">Không có đủ dung lượng để lưu trữ sao lưu của bạn.</string>
+  <!--Error message shown if a newly created backup could not be verified as accurate-->
+  <string name="LocalBackupJobApi29_your_backup_could_not_be_verified">Bản lưu dự phòng gần đây của bạn không thể được tạo và xác minh. Vui lòng tạo một bản mới.</string>
+  <!--Error message shown if a very large attachment is encountered during the backup creation and causes the backup to fail-->
+  <string name="LocalBackupJobApi29_your_backup_contains_a_very_large_file">Bản lưu dự phòng của bạn chứa một tập tin rất lớn và không thể được sao lưu. Vui lòng xóa tập tin đó và tạo một bản lưu dự phòng mới.</string>
   <string name="LocalBackupJobApi29_tap_to_manage_backups">Nhấn để quản lý các bản sao lưu.</string>
   <string name="ProgressPreference_d_messages_so_far">Đã được %d tin nhắn</string>
   <string name="RegistrationActivity_wrong_number">Sai số điện thoại</string>
@@ -2867,6 +2918,7 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="CallParticipant__s_on_another_device">%1$s (trên một thiết bị khác)</string>
   <!--WifiToCellularPopupWindow-->
   <!--Message shown during a call when the WiFi network is unusable, and cellular data starts to be used for the call instead.-->
+  <string name="WifiToCellularPopupWindow__weak_wifi_switched_to_cellular">Wi-Fi yếu. Đã chuyển qua mạng di động.</string>
   <!--DeleteAccountFragment-->
   <string name="DeleteAccountFragment__deleting_your_account_will">Xoá tài khoản của bạn sẽ:</string>
   <string name="DeleteAccountFragment__enter_your_phone_number">Nhập số điện thoại của bạn</string>
@@ -2908,6 +2960,8 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="ShareActivity__send">Gửi</string>
   <string name="ShareActivity__comma_s">, %1$s</string>
   <string name="ShareActivity__sharing_to_multiple_chats_is">Chia sẻ cho nhiều cuộc trò chuyện chỉ được hỗ trợ cho tin nhắn Signal</string>
+  <!--Toast when the incoming intent is invalid-->
+  <string name="ShareActivity__could_not_get_share_data_from_intent">Không thể thu được dữ liệu chia sẻ từ ý định.</string>
   <!--MultiShareDialogs-->
   <string name="MultiShareDialogs__failed_to_send_to_some_users">Không thể gửi cho một số người dùng</string>
   <string name="MultiShareDialogs__you_can_only_share_with_up_to">Bạn chỉ có thể chia sẻ tới tối đa %1$d cuộc trò chuyện</string>
@@ -3133,6 +3187,8 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="PrivacySettingsFragment__signal_message_and_calls">Tin nhắn và cuộc gọi Signal, luôn luôn chuyển tiếp cuộc gọi, và người gửi được niêm phong</string>
   <string name="PrivacySettingsFragment__default_timer_for_new_changes">Đồng hồ mặc định cho tất cả cuộc trò chuyện mới</string>
   <string name="PrivacySettingsFragment__set_a_default_disappearing_message_timer_for_all_new_chats_started_by_you">Đặt đồng hồ tin nhắn biến mất mặc định cho tất cả các cuộc trò chuyện mới bắt đầu bởi bạn.</string>
+  <!--Summary for stories preference to launch into story privacy settings-->
+  <string name="PrivacySettingsFragment__manage_your_stories">Quản lý các story của bạn và người có thể xem story</string>
   <!--AdvancedPrivacySettingsFragment-->
   <string name="AdvancedPrivacySettingsFragment__show_status_icon">Hiện biểu tượng trạng thái</string>
   <string name="AdvancedPrivacySettingsFragment__show_an_icon">Hiện biểu tượng trong chi tiết tin nhắn khi chúng được gửi qua người gửi được niêm phong.</string>
@@ -3240,6 +3296,8 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="EmojiSearchFragment__no_results_found">Không tìm thấy kết quả</string>
   <string name="NotificationsSettingsFragment__unknown_ringtone">Không rõ nhạc chuông</string>
   <!--ConversationSettingsFragment-->
+  <!--Error toasted when no activity can handle the add contact intent-->
+  <string name="ConversationSettingsFragment__contacts_app_not_found">Không tìm thấy ứng dụng Danh bạ</string>
   <string name="ConversationSettingsFragment__send_message">Gửi tin nhắn</string>
   <string name="ConversationSettingsFragment__start_video_call">Bắt đầu cuộc gọi video</string>
   <string name="ConversationSettingsFragment__start_audio_call">Bắt đầu cuộc gọi âm thanh</string>
@@ -3737,10 +3795,12 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="ConversationListTabs__stories">Các Story</string>
   <!--String for counts above 99 in conversation list tabs-->
   <string name="ConversationListTabs__99p">99+</string>
+  <!--Menu item on stories landing page-->
+  <string name="StoriesLandingFragment__story_privacy">Sự Riêng tư của Story</string>
   <!--Title for "My Stories" row item in Stories landing page-->
   <string name="StoriesLandingFragment__my_stories">Các Story của tôi</string>
   <!--Subtitle for "My Stories" row item when user has not added stories-->
-  <string name="StoriesLandingFragment__add_a_story">Thêm một story</string>
+  <string name="StoriesLandingFragment__tap_to_add_a_story">Nhấn để thêm story</string>
   <!--Displayed when there are no stories to display-->
   <string name="StoriesLandingFragment__no_recent_updates_to_show_right_now_tap_plus_to_add_to_your_story">Không có thông tin cập nhật gần đây để hiển thị vào lúc này. Nhấn nút + để thêm vào story của bạn.</string>
   <!--Context menu option to hide a story-->
@@ -3815,6 +3875,14 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="StoryViewsFragment__enable_read_receipts_to_see_whos_viewed_your_story">Bật thông báo đã xem để biết ai đã xem story của bạn.</string>
   <!--Button label displayed when user has disabled receipts-->
   <string name="StoryViewsFragment__go_to_settings">Đến mục cài đặt</string>
+  <!--Dialog action to remove viewer from a story-->
+  <string name="StoryViewsFragment__remove">Xóa</string>
+  <!--Dialog title when removing a viewer from a story-->
+  <string name="StoryViewsFragment__remove_viewer">Gỡ người xem?</string>
+  <!--Dialog message when removing a viewer from a story-->
+  <string name="StoryViewsFragment__s_will_still_be_able">%1$s sẽ vẫn xem được bài đăng này, nhưng sẽ không còn xem được bất kỳ bài đăng nào bạn chia sẻ vào %2$s.</string>
+  <!--Story View context menu action to remove them from a story-->
+  <string name="StoryViewItem__remove_viewer">Gỡ người xem</string>
   <!--Displayed when a story has no replies yet-->
   <string name="StoryGroupReplyFragment__no_replies_yet">Chưa có phản hồi</string>
   <!--Displayed for each user that reacted to a story when viewing replies-->
@@ -3833,14 +3901,6 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="StoryGroupReplyItem__copy">Sao chép</string>
   <!--Context menu item to delete a story response-->
   <string name="StoryGroupReplyItem__delete">Xóa</string>
-  <!--Story settings page title-->
-  <string name="StorySettingsFragment__story_settings">Cài đặt story</string>
-  <!--Story settings private stories heading-->
-  <string name="StorySettingsFragment__private_stories">Story riêng tư</string>
-  <!--Note at bottom of story settings regarding who can see private stories.-->
-  <string name="StorySettingsFragment__private_stories_can_only_be_viewed">Các story riêng tư chỉ có thể được xem bởi những người bạn đã thêm vào. Chỉ bạn mới có thể xem tên của story.</string>
-  <!--Option label for creating a new private story-->
-  <string name="StorySettingsFragment__new_private_story">Story riêng tư mới</string>
   <!--Page title for My Story options-->
   <string name="MyStorySettingsFragment__my_story">Story của tôi</string>
   <!--Section heading for story visibility-->
@@ -4025,7 +4085,7 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <string name="StoriesLinkPopup__visit_link">Truy cập đường dẫn</string>
   <!--Gift price and duration, formatted as: {price} dot {n} day duration-->
   <plurals name="GiftRowItem_s_dot_d_day_duration">
-    <item quantity="other">Kéo dài %1$s · %2$d ngày</item>
+    <item quantity="other">%1$s · Hạn sử dụng %2$d ngày</item>
   </plurals>
   <!--Tagline for gift row items-->
   <string name="GiftRowItem__send_a_gift_badge">Gửi một huy hiệu quà tặng</string>
@@ -4084,6 +4144,10 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <!--Label under name for group stories-->
   <plurals name="ContactSearchItems__group_story_d_viewers">
     <item quantity="other">Story Nhóm · %1$d người xem</item>
+  </plurals>
+  <!--Label under name for my story-->
+  <plurals name="ContactSearchItems__my_story_s_dot_d_viewers">
+    <item quantity="other">%1$s · %2$d người xem</item>
   </plurals>
   <!--Label under name for My Story when first sending to my story-->
   <string name="ContactSearchItems__tap_to_choose_your_viewers">Nhấn để chọn người xem của bạn</string>
@@ -4160,6 +4224,9 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <!--Title of safety number review fragment-->
   <string name="SafetyNumberReviewConnectionsFragment__safety_number_changes">Các thay đổi của Mã số an toàn</string>
   <!--Message of safety number review fragment-->
+  <plurals name="SafetyNumberReviewConnectionsFragment__d_recipients_may_have">
+    <item quantity="other">%1$d người nhận có thể đã cài đặt lại Signal hoặc đổi thiết bị. Nhấn vào một người nhận để xác nhận mã số an toàn mới. Thao tác này không bắt buộc.</item>
+  </plurals>
   <!--Section header for 1:1 contacts in review fragment-->
   <string name="SafetyNumberBucketRowItem__contacts">Danh bạ</string>
   <!--Context menu label for distribution list headers in review fragment-->
@@ -4181,11 +4248,38 @@ Nhận thông tin trao đổi mã khóa về phiên bản giao thức không h�
   <!--Story info header received heading-->
   <string name="StoryInfoHeader__received">Đã nhận</string>
   <!--Story info header file size heading-->
+  <string name="StoryInfoHeader__file_size">Kích thước tập tin</string>
   <!--Story info "Sent to" header-->
   <string name="StoryInfoBottomSheetDialogFragment__sent_to">Gửi từ</string>
   <!--Story info "Sent from" header-->
   <string name="StoryInfoBottomSheetDialogFragment__sent_from">Gửi tới</string>
   <!--Story Info context menu label-->
   <string name="StoryInfoBottomSheetDialogFragment__info">Thông tin</string>
+  <!--StoriesPrivacySettingsFragment-->
+  <!--Explanation about how stories are deleted and managed-->
+  <string name="StoriesPrivacySettingsFragment__stories_automatically_disappear">Các story tự động biến mất sau 24 giờ. Chọn người có thể xem story của bạn hoặc tạo các story mới cho các nhóm và người xem nhất định.</string>
+  <!--Preference title to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_off_stories">Tắt story</string>
+  <!--Preference summary to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__if_you_opt_out">Nếu bạn tắt tính năng story, bạn sẽ không thể tiếp tục chia sẻ hoặc xem story.</string>
+  <!--Preference title to turn on stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_on_stories">Bật story</string>
+  <!--Preference summary to turn on stories-->
+  <string name="StoriesPrivacySettingsFragment__share_and_view">Chia sẻ và xem story của thành viên khác. Các story tự động biến mất sau 24 giờ.</string>
+  <!--Dialog title to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__turn_off_stories_question">Tắt story?</string>
+  <!--Dialog message to turn off stories-->
+  <string name="StoriesPrivacySettingsFragment__you_will_no_longer_be_able_to">Bạn sẽ không thể tiếp tục chia sẻ hoặc xem story. Bất kỳ story nào bạn đã gửi gần đây vẫn có thể được xem bởi các người dùng khác cho đến khi story hết hạn.</string>
+  <!--Page title when launched from stories landing screen-->
+  <string name="StoriesPrivacySettingsFragment__story_privacy">Sự Riêng tư của Story</string>
+  <!--GroupStorySettingsFragment-->
+  <!--Section header for who can view a group story-->
+  <string name="GroupStorySettingsFragment__who_can_view_this_story">Ai có thể xem story này</string>
+  <!--Explanation of who can view a group story-->
+  <string name="GroupStorySettingsFragment__members_of_the_group_s">Các thành viên của nhóm \"%1$s\" có thể xem và trả lời story này. Bạn có thể cập nhật quyền thành viên của cuộc trò chuyện này trong nhóm.</string>
+  <!--Preference label for removing this group story-->
+  <string name="GroupStorySettingsFragment__remove_group_story">Gỡ story nhóm</string>
+  <!--Generic title for overflow menus-->
+  <string name="OverflowMenu__overflow_menu">Menu tràn</string>
   <!--EOF-->
 </resources>

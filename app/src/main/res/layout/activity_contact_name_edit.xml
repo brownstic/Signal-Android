@@ -2,6 +2,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:viewBindingIgnore="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
@@ -12,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/signal_m3_toolbar_height"
         android:minHeight="@dimen/signal_m3_toolbar_height"
-        app:navigationIcon="@drawable/ic_x"
+        app:navigationIcon="@drawable/ic_x_tinted"
         app:title="@string/ContactShareEditActivity__edit_name"
         app:titleTextAppearance="@style/Signal.Text.TitleLarge" />
 

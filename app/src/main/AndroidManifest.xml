@@ -106,8 +106,8 @@
 
     <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCeckE3f9tRsyK8-ilBPQsTNOBjF4tvC9U"/>
-
+            android:value="${mapsKey}"/>
+			
     <meta-data android:name="android.supports_size_changes"
                android:value="true" />
 
@@ -374,6 +374,16 @@
             android:windowSoftInputMode="stateAlwaysHidden|adjustNothing"
             android:launchMode="singleTop"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
+
+        <activity android:name=".conversation.mutiselect.forward.MultiselectForwardActivity"
+            android:theme="@style/Signal.DayNight.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustNothing"
+            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
+
+        <activity android:name=".mediasend.v2.stories.StoriesMultiselectForwardActivity"
+            android:theme="@style/Signal.DayNight.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustNothing"
+            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
 
     <activity android:name=".PassphraseChangeActivity"
               android:label="@string/AndroidManifest__change_passphrase"
