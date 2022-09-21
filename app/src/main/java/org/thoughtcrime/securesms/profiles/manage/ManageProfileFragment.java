@@ -103,7 +103,7 @@ public class ManageProfileFragment extends LoggingFragment {
     });
 
     if (FeatureFlags.internalUser()) {
-      badgesContainer.setOnClickListener(v -> {
+      binding.manageProfileBadgesContainer.setOnClickListener(v -> {
         if (Recipient.self().getBadges().isEmpty()) {
           BecomeASustainerFragment.show(getParentFragmentManager());
         } else {

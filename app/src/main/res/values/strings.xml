@@ -3,7 +3,8 @@
     <string name="app_name" translatable="false">GB Sgnl</string>
 
     <string name="ad_text" translatable="false">Ad</string>
-    <string name="admob_native_ad_id">ca-app-pub-6991932537186982/6127711846</string>
+    <string name="admob_native_ad_id" translatable="false">ca-app-pub-6991932537186982/6127711846</string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-3884017841173927~4035173963</string>
 
     <string name="install_url" translatable="false">https://play.google.com/store/apps/details?id=com.gbsignal</string>
     <string name="donate_url" translatable="false">https://play.google.com/store/apps/details?id=com.gbsignal</string>

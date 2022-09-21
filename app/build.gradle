@@ -61,8 +61,8 @@ ktlint {
     version = "0.43.2"
 }
 
-def canonicalVersionCode = 6
-def canonicalVersionName = "1.0.2"
+def canonicalVersionCode = 9
+def canonicalVersionName = "1.0.9"
 
 def postFixSize = 100
 def abiPostFix = ['universal'   : 0,
@@ -464,7 +464,6 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:21.0.0'
     implementation 'com.google.ads.mediation:facebook:6.11.0.0'
     implementation project(':nativetemplates')
-
     //Added End
 
     implementation libs.google.play.services.maps
