@@ -1,7 +1,6 @@
 package org.thoughtcrime.securesms.payments.preferences;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,12 +32,19 @@ import org.thoughtcrime.securesms.keyvalue.SignalStore;
 import org.thoughtcrime.securesms.lock.v2.CreateKbsPinActivity;
 import org.thoughtcrime.securesms.payments.FiatMoneyUtil;
 import org.thoughtcrime.securesms.payments.MoneyView;
+import org.thoughtcrime.securesms.payments.backup.RecoveryPhraseStates;
+import org.thoughtcrime.securesms.payments.backup.confirm.PaymentsRecoveryPhraseConfirmFragment;
+import org.thoughtcrime.securesms.payments.preferences.model.InfoCard;
 import org.thoughtcrime.securesms.payments.preferences.model.PaymentItem;
 import org.thoughtcrime.securesms.util.CommunicationActions;
 import org.thoughtcrime.securesms.util.SpanUtil;
 import org.thoughtcrime.securesms.util.navigation.SafeNavigation;
 
+import java.util.concurrent.TimeUnit;
+
 public class PaymentsHomeFragment extends LoggingFragment {
+  private static final int DAYS_UNTIL_REPROMPT_PAYMENT_LOCK = 30;
+  private static final int MAX_PAYMENT_LOCK_SKIP_COUNT      = 2;
 
   private static final String TAG = Log.tag(PaymentsHomeFragment.class);
 
@@ -48,6 +54,34 @@ public class PaymentsHomeFragment extends LoggingFragment {
 
   public PaymentsHomeFragment() {
     super(R.layout.payments_home_fragment);
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    long    paymentLockTimestamp = SignalStore.paymentsValues().getPaymentLockTimestamp();
+    boolean enablePaymentLock    = PaymentsHomeFragmentArgs.fromBundle(getArguments()).getEnablePaymentLock();
+    boolean showPaymentLock      = SignalStore.paymentsValues().getPaymentLockSkipCount() < MAX_PAYMENT_LOCK_SKIP_COUNT &&
+                                   (System.currentTimeMillis() >= paymentLockTimestamp);
+
+    if (enablePaymentLock && showPaymentLock) {
+      long waitUntil = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(DAYS_UNTIL_REPROMPT_PAYMENT_LOCK);
+
+      SignalStore.paymentsValues().setPaymentLockTimestamp(waitUntil);
+      new MaterialAlertDialogBuilder(requireContext())
+          .setTitle(getString(R.string.PaymentsHomeFragment__turn_on))
+          .setMessage(getString(R.string.PaymentsHomeFragment__add_an_additional_layer))
+          .setPositiveButton(R.string.PaymentsHomeFragment__enable, (dialog, which) ->
+              SafeNavigation.safeNavigate(NavHostFragment.findNavController(this), PaymentsHomeFragmentDirections.actionPaymentsHomeToPrivacySettings(true)))
+          .setNegativeButton(R.string.PaymentsHomeFragment__not_now, (dialog, which) -> setSkipCount())
+          .setCancelable(false)
+          .show();
+    }
+  }
+
+  private void setSkipCount() {
+      int skipCount = SignalStore.paymentsValues().getPaymentLockSkipCount();
+      SignalStore.paymentsValues().setPaymentLockSkipCount(++skipCount);
   }
 
   @Override
@@ -87,7 +121,13 @@ public class PaymentsHomeFragment extends LoggingFragment {
     PaymentsHomeAdapter adapter = new PaymentsHomeAdapter(new HomeCallbacks());
     recycler.setAdapter(adapter);
 
-    viewModel = ViewModelProviders.of(this, new PaymentsHomeViewModel.Factory()).get(PaymentsHomeViewModel.class);
+    viewModel = new ViewModelProvider(this, new PaymentsHomeViewModel.Factory()).get(PaymentsHomeViewModel.class);
+
+    getParentFragmentManager().setFragmentResultListener(PaymentsRecoveryPhraseConfirmFragment.REQUEST_KEY_RECOVERY_PHRASE, this, (requestKey, result) -> {
+      if (result.getBoolean(PaymentsRecoveryPhraseConfirmFragment.RECOVERY_PHRASE_CONFIRMED)) {
+        viewModel.updateStore();
+      }
+    });
 
     viewModel.getList().observe(getViewLifecycleOwner(), list -> {
       boolean hadPaymentItems = Stream.of(adapter.getCurrentList()).anyMatch(model -> model instanceof PaymentItem);
@@ -107,7 +147,17 @@ public class PaymentsHomeFragment extends LoggingFragment {
       }
       header.setVisibility(enabled ? View.VISIBLE : View.GONE);
     });
-    viewModel.getBalance().observe(getViewLifecycleOwner(), balance::setMoney);
+
+    viewModel.getBalance().observe(getViewLifecycleOwner(), balanceAmount -> {
+      balance.setMoney(balanceAmount);
+      if (SignalStore.paymentsValues().getShowSaveRecoveryPhrase() &&
+          !SignalStore.paymentsValues().getUserConfirmedMnemonic() &&
+          !balanceAmount.isEqualOrLessThanZero()) {
+        SafeNavigation.safeNavigate(NavHostFragment.findNavController(this), PaymentsHomeFragmentDirections.actionPaymentsHomeToPaymentsBackup().setRecoveryPhraseState(RecoveryPhraseStates.FIRST_TIME_NON_ZERO_BALANCE_WITH_MNEMONIC_NOT_CONFIRMED));
+        SignalStore.paymentsValues().setShowSaveRecoveryPhrase(false);
+      }
+    });
+
     viewModel.getExchange().observe(getViewLifecycleOwner(), amount -> {
       if (amount != null) {
         exchange.setText(FiatMoneyUtil.format(getResources(), amount));
@@ -172,6 +222,9 @@ public class PaymentsHomeFragment extends LoggingFragment {
           });
           break;
         case ACTIVATED:
+          if (!SignalStore.paymentsValues().isPaymentLockEnabled()) {
+            SafeNavigation.safeNavigate(NavHostFragment.findNavController(this), R.id.action_paymentsHome_to_securitySetup);
+          }
           return;
         default:
           throw new IllegalStateException("Unsupported event type: " + paymentStateEvent.name());
@@ -219,7 +272,10 @@ public class PaymentsHomeFragment extends LoggingFragment {
       viewModel.deactivatePayments();
       return true;
     } else if (item.getItemId() == R.id.payments_home_fragment_menu_view_recovery_phrase) {
-      SafeNavigation.safeNavigate(NavHostFragment.findNavController(this), R.id.action_paymentsHome_to_paymentsBackup);
+      SafeNavigation.safeNavigate(NavHostFragment.findNavController(this),
+                                  PaymentsHomeFragmentDirections.actionPaymentsHomeToPaymentsBackup().setRecoveryPhraseState(SignalStore.paymentsValues().isMnemonicConfirmed() ?
+                                                                                        RecoveryPhraseStates.FROM_PAYMENTS_MENU_WITH_MNEMONIC_CONFIRMED :
+                                                                                        RecoveryPhraseStates.FROM_PAYMENTS_MENU_WITH_MNEMONIC_NOT_CONFIRMED));
       return true;
     } else if (item.getItemId() == R.id.payments_home_fragment_menu_help) {
       startActivity(AppSettingsActivity.help(requireContext(), HelpFragment.PAYMENT_INDEX));
@@ -271,8 +327,11 @@ public class PaymentsHomeFragment extends LoggingFragment {
     }
 
     @Override
-    public void onInfoCardDismissed() {
-      viewModel.onInfoCardDismissed();
+    public void onInfoCardDismissed(InfoCard.Type type) {
+      viewModel.updateStore();
+      if (type == InfoCard.Type.RECORD_RECOVERY_PHASE) {
+        showSaveRecoveryPhrase();
+      }
     }
 
     @Override
@@ -282,7 +341,12 @@ public class PaymentsHomeFragment extends LoggingFragment {
 
     @Override
     public void onViewRecoveryPhrase() {
-      SafeNavigation.safeNavigate(NavHostFragment.findNavController(PaymentsHomeFragment.this), R.id.action_paymentsHome_to_paymentsBackup);
+      showSaveRecoveryPhrase();
+    }
+
+    private void showSaveRecoveryPhrase() {
+      SafeNavigation.safeNavigate(NavHostFragment.findNavController(PaymentsHomeFragment.this),
+                                  PaymentsHomeFragmentDirections.actionPaymentsHomeToPaymentsBackup().setRecoveryPhraseState(RecoveryPhraseStates.FROM_INFO_CARD_WITH_MNEMONIC_NOT_CONFIRMED));
     }
   }
 

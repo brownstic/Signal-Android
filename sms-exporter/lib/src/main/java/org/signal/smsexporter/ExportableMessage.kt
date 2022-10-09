@@ -1,18 +1,27 @@
 package org.signal.smsexporter
 
+import kotlin.time.Duration
+
 /**
  * Represents an exportable MMS or SMS message
  */
 sealed interface ExportableMessage {
 
   /**
+   * This represents the initial exportState of the message, and it is *not* updated as
+   * the message moves through processing.
+   */
+  val exportState: SmsExportState
+
+  /**
    * An exportable SMS message
    */
-  data class Sms(
-    val id: String,
+  data class Sms<out ID : Any>(
+    val id: ID,
+    override val exportState: SmsExportState,
     val address: String,
-    val dateReceived: Long,
-    val dateSent: Long,
+    val dateReceived: Duration,
+    val dateSent: Duration,
     val isRead: Boolean,
     val isOutgoing: Boolean,
     val body: String
@@ -21,11 +30,12 @@ sealed interface ExportableMessage {
   /**
    * An exportable MMS message
    */
-  data class Mms(
-    val id: String,
+  data class Mms<out ID : Any>(
+    val id: ID,
+    override val exportState: SmsExportState,
     val addresses: Set<String>,
-    val dateReceived: Long,
-    val dateSent: Long,
+    val dateReceived: Duration,
+    val dateSent: Duration,
     val isRead: Boolean,
     val isOutgoing: Boolean,
     val parts: List<Part>,

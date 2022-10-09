@@ -26,6 +26,7 @@ import com.bumptech.glide.util.Executors;
 
 import org.signal.core.util.logging.Log;
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.mediasend.camerax.CameraXModePolicy;
 import org.thoughtcrime.securesms.permissions.Permissions;
 import org.thoughtcrime.securesms.util.Debouncer;
 import org.thoughtcrime.securesms.util.MemoryFileDescriptor;
@@ -51,6 +52,7 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
   private final @NonNull MemoryFileDescriptor memoryFileDescriptor;
   private final @NonNull ValueAnimator        updateProgressAnimator;
   private final @NonNull Debouncer            debouncer;
+  private final @NonNull CameraXModePolicy    cameraXModePolicy;
 
   private ValueAnimator cameraMetricsAnimator;
 
@@ -81,6 +83,7 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
                             @NonNull CameraController cameraController,
                             @NonNull PreviewView previewView,
                             @NonNull MemoryFileDescriptor memoryFileDescriptor,
+                            @NonNull CameraXModePolicy cameraXModePolicy,
                             int maxVideoDurationSec,
                             @NonNull Callback callback)
   {
@@ -91,6 +94,7 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
     this.callback               = callback;
     this.updateProgressAnimator = ValueAnimator.ofFloat(0f, 1f).setDuration(TimeUnit.SECONDS.toMillis(maxVideoDurationSec));
     this.debouncer              = new Debouncer(TimeUnit.SECONDS.toMillis(maxVideoDurationSec));
+    this.cameraXModePolicy      = cameraXModePolicy;
 
     updateProgressAnimator.setInterpolator(new LinearInterpolator());
     updateProgressAnimator.addUpdateListener(anim -> captureButton.setProgress(anim.getAnimatedFraction()));
@@ -123,13 +127,13 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
 
   @SuppressLint("RestrictedApi")
   private void beginCameraRecording() {
+    cameraXModePolicy.setToVideo(cameraController);
     this.cameraController.setZoomRatio(Objects.requireNonNull(this.cameraController.getZoomState().getValue()).getMinZoomRatio());
     callback.onVideoRecordStarted();
     shrinkCaptureArea();
 
     OutputFileOptions options = OutputFileOptions.builder(memoryFileDescriptor.getParcelFileDescriptor()).build();
 
-    cameraController.setEnabledUseCases(CameraController.VIDEO_CAPTURE);
     cameraController.startRecording(options, Executors.mainThreadExecutor(), videoSavedListener);
     updateProgressAnimator.start();
     debouncer.publish(this::onVideoCaptureComplete);
@@ -190,7 +194,6 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
 
     Log.d(TAG, "onVideoCaptureComplete");
     cameraController.stopRecording();
-    cameraController.setEnabledUseCases(CameraController.IMAGE_CAPTURE);
 
     if (cameraMetricsAnimator != null && cameraMetricsAnimator.isRunning()) {
       cameraMetricsAnimator.reverse();
@@ -198,6 +201,7 @@ class CameraXVideoCaptureHelper implements CameraButtonView.VideoCaptureListener
 
     updateProgressAnimator.cancel();
     debouncer.clear();
+    cameraXModePolicy.setToImage(cameraController);
   }
 
   @Override

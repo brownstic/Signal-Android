@@ -169,11 +169,11 @@
   <string name="ContactsCursorLoader_contacts">Cysylltiadau</string>
   <string name="ContactsCursorLoader_groups">Grwpiau</string>
   <string name="ContactsCursorLoader_phone_number_search">Chwiliad rhif ffôn</string>
-  <string name="ContactsCursorLoader_username_search">Chwiliad enw defnyddiwr</string>
+  <!--Header for username search-->
+  <string name="ContactsCursorLoader_find_by_username">Canfod yn ôl Enw Defnyddiwr</string>
   <!--Label for my stories when selecting who to send media to-->
   <string name="ContactsCursorLoader_my_stories">Fy straeon</string>
   <!--Action for creating a new story-->
-  <string name="ContactsCursorLoader_new_story">Stori Newydd</string>
   <!--ContactsDatabase-->
   <string name="ContactsDatabase_message_s">Neges %s</string>
   <string name="ContactsDatabase_signal_call_s">Galwad Signal %s</string>
@@ -468,7 +468,6 @@ Anfon neges heb ei diogelu?</string>
   <string name="CreateProfileActivity_error_setting_profile_photo">Gwall gosod llun proffil</string>
   <string name="CreateProfileActivity_problem_setting_profile">Anhawster gosod proffil</string>
   <string name="CreateProfileActivity_set_up_your_profile">Creu eich proffil</string>
-  <string name="CreateProfileActivity_signal_profiles_are_end_to_end_encrypted">Mae eich proffil wedi\'i amgryptio o ben-i-ben. Bydd eich proffil a’ch newidiadau iddo yn weladwy i\'ch cysylltiadau, pan fyddwch chi’n cychwyn neu\'n derbyn sgyrsiau newydd, a phan fyddwch yn ymuno â grwpiau newydd.</string>
   <string name="CreateProfileActivity_set_avatar_description">Gosod afatar</string>
   <!--ProfileCreateFragment-->
   <!--Displayed at the top of the screen and explains how profiles can be viewed.-->
@@ -1740,6 +1739,7 @@ Anfon neges heb ei diogelu?</string>
   <string name="UnverifiedSendDialog_send_message">Anfon neges?</string>
   <string name="UnverifiedSendDialog_send">Anfon</string>
   <!--UsernameEditFragment-->
+  <!--Toolbar title when entering from registration-->
   <!--Instructional text at the top of the username edit screen-->
   <string name="UsernameEditFragment_username">Enw defnyddiwr</string>
   <string name="UsernameEditFragment_delete">Dileu</string>
@@ -1754,6 +1754,10 @@ Anfon neges heb ei diogelu?</string>
   <string name="UsernameEditFragment_usernames_must_be_between_a_and_b_characters">Rhaid i enwau defnyddwyr fod rhwng %1$d a %2$d nod.</string>
   <!--Explanation about what usernames provide-->
   <!--Dialog title for explanation about numbers at the end of the username-->
+  <!--Button to allow user to skip-->
+  <string name="UsernameEditFragment__skip">Hepgor</string>
+  <!--Content description for done button-->
+  <string name="UsernameEditFragment__done">Wedi Gorffen</string>
   <plurals name="UserNotificationMigrationJob_d_contacts_are_on_signal">
     <item quantity="one">Mae %d cysylltiad ar Signal!</item>
     <item quantity="two">Mae %d cysylltiad ar Signal!</item>
@@ -2375,6 +2379,7 @@ Anfon neges heb ei diogelu?</string>
   <string name="preferences__data_and_storage">Data a storio</string>
   <string name="preferences__storage">Storfa</string>
   <string name="preferences__payments">Taliadau</string>
+  <!--Privacy settings payments section description-->
   <string name="preferences__payments_beta">Taliadau (Beta)</string>
   <string name="preferences__conversation_length_limit">Maint uchaf sgyrsiau</string>
   <string name="preferences__keep_messages">Cadw negeseuon</string>
@@ -2440,6 +2445,8 @@ Anfon neges heb ei diogelu?</string>
   <string name="preferences_app_protection__who_can">Pwy all…</string>
   <string name="preferences_app_protection__app_access">Mynediad i ap</string>
   <string name="preferences_app_protection__communication">Cyfathrebu</string>
+  <!--Privacy settings payments section title-->
+  <string name="preferences_app_protection__payments">Taliadau</string>
   <string name="preferences_chats__chats">Sgyrsiau</string>
   <string name="preferences_data_and_storage__manage_storage">Rheoli storio</string>
   <string name="preferences_data_and_storage__calls">Galwadau</string>
@@ -2541,6 +2548,12 @@ Anfon neges heb ei diogelu?</string>
   <string name="PaymentsHomeFragment__activate">Cychwyn</string>
   <string name="PaymentsHomeFragment__view_mobile_coin_terms">Gweld telerau MobileCoin</string>
   <string name="PaymentsHomeFragment__payments_not_available">Nid yw taliadau yn Signal ar gael bellach. Gallwch barhau i drosglwyddo arian i gyfnewidfa ond ni allwch anfon a derbyn taliadau mwyach nac ychwanegu arian.</string>
+  <!--Alert dialog title which shows up after a payment to turn on payment lock-->
+  <!--Alert dialog description for why payment lock should be enabled before sending payments-->
+  <!--Alert dialog button to enable payment lock-->
+  <string name="PaymentsHomeFragment__enable">Galluogi</string>
+  <!--Alert dialog button to not enable payment lock for now-->
+  <string name="PaymentsHomeFragment__not_now">Nid nawr</string>
   <!--PaymentsAddMoneyFragment-->
   <string name="PaymentsAddMoneyFragment__add_funds">Ychwanegu arian</string>
   <string name="PaymentsAddMoneyFragment__your_wallet_address">Cyfeiriad Eich Waled</string>
@@ -2621,6 +2634,10 @@ Anfon neges heb ei diogelu?</string>
   <string name="ConfirmPayment__payment_failed">Methodd y taliad</string>
   <string name="ConfirmPayment__payment_will_continue_processing">Bydd y taliad yn parhau i brosesu</string>
   <string name="ConfirmPaymentFragment__invalid_recipient">Derbynnydd annilys</string>
+  <!--Biometric/Device authentication prompt title which comes up before sending a payment-->
+  <!--Title of a dialog show when we were unable to present the user\'s screenlock before sending a payment-->
+  <!--Body of a dialog show when we were unable to present the user\'s screenlock before sending a payment-->
+  <!--Button in a dialog that will take the user to the privacy settings-->
   <string name="ConfirmPaymentFragment__this_person_has_not_activated_payments">Nid yw\'r person hwn wedi gweithredu taliadau</string>
   <string name="ConfirmPaymentFragment__unable_to_request_a_network_fee">Methu gofyn am ffi rhwydwaith. I barhau â\'r taliad hwn, tapiwch Iawn i geisio eto.</string>
   <!--CurrencyAmountFormatter_s_at_s-->
@@ -3429,6 +3446,9 @@ Anfon neges heb ei diogelu?</string>
   <string name="ChatsSettingsFragment__enter_key_sends">Pwyso Enter i anfon</string>
   <!--SmsSettingsFragment-->
   <string name="SmsSettingsFragment__use_as_default_sms_app">Defnyddio fel yr ap SMS rhagosodedig</string>
+  <!--Preference title to export sms-->
+  <!--Preference title to delete sms-->
+  <!--Snackbar text to confirm deletion-->
   <!--NotificationsSettingsFragment-->
   <string name="NotificationsSettingsFragment__messages">Negeseuon</string>
   <string name="NotificationsSettingsFragment__calls">Galwadau</string>
@@ -3456,6 +3476,12 @@ Anfon neges heb ei diogelu?</string>
   <string name="PrivacySettingsFragment__default_timer_for_new_changes">Amserydd rhagosodedig ar gyfer sgyrsiau newydd</string>
   <string name="PrivacySettingsFragment__set_a_default_disappearing_message_timer_for_all_new_chats_started_by_you">Gosod cyfnod negeseuon byrhoedlog rhagosodedig ar gyfer holl sgyrsiau newydd a sydd wedi\'u dechrau gennych.</string>
   <!--Summary for stories preference to launch into story privacy settings-->
+  <!--Alert dialog title when payment lock cannot be enabled-->
+  <!--Alert dialog description to setup screen lock or fingerprint in phone settings-->
+  <!--Shown in a toast when we can\'t navigate to the user\'s system fingerprint settings-->
+  <!--Alert dialog button to go to phone settings-->
+  <!--Alert dialog button to cancel the dialog-->
+  <string name="PrivacySettingsFragment__cancel">Diddymu</string>
   <!--AdvancedPrivacySettingsFragment-->
   <string name="AdvancedPrivacySettingsFragment__show_status_icon">Dangos eicon statws</string>
   <string name="AdvancedPrivacySettingsFragment__show_an_icon">Dangos eicon ym manylion y neges pan mae nhw\'n cael eu hanfon gan ddefnyddio anfonwr wedi\'i selio.</string>
@@ -3696,6 +3722,8 @@ Anfon neges heb ei diogelu?</string>
     <item quantity="many">Methu anfon y negeseuon ymlaen gan nad ydyn nhw ar gael</item>
     <item quantity="other">Methu anfon y negeseuon ymlaen gan nad ydyn nhw ar gael</item>
   </plurals>
+  <!--Error message shown when attempting to select a group to forward/share but it\'s announcement only and you are not an admin-->
+  <string name="MultiselectForwardFragment__only_admins_can_send_messages_to_this_group">Gweinyddwyr yn unig gall anfon negeseuon i\'t grŵp hwn.</string>
   <string name="MultiselectForwardFragment__limit_reached">Wedi cyrraedd y terfyn</string>
   <!--Media V2-->
   <string name="MediaReviewFragment__add_a_message">Ychwanegu neges</string>
@@ -3854,13 +3882,9 @@ Anfon neges heb ei diogelu?</string>
   <string name="NetworkFailure__network_error_check_your_connection_and_try_again">Gwall rhwydwaith. Gwiriwch eich cysylltiad a cheisio eto.</string>
   <string name="NetworkFailure__retry">Ceisio eto</string>
   <!--Displayed as a dialog title when the selected recipient for a gift doesn\'t support gifting-->
-  <string name="DonationsErrors__recipient_verification_failed">Methodd dilysu\'r derbynnydd.</string>
   <!--Displayed as a dialog message when the selected recipient for a gift doesn\'t support gifting-->
-  <string name="DonationsErrors__target_does_not_support_gifting">Nid yw targed yn cefnogi rhoddion.</string>
   <!--Displayed as a dialog title when the user\'s profile could not be fetched, likely due to lack of internet-->
-  <string name="DonationsErrors__could_not_verify_recipient">Methu â dilysu\'r derbynnydd.</string>
   <!--Displayed as a dialog message when the user\'s profile could not be fetched, likely due to lack of internet-->
-  <string name="DonationsErrors__please_check_your_network_connection">Gwiriwch eich cysylltiad rhwydwaith a cheisiwch eto.</string>
   <!--Gift message view title-->
   <string name="GiftMessageView__gift_badge">Bathodyn rhodd</string>
   <!--Gift message view expiry information-->
@@ -4187,7 +4211,6 @@ Anfon neges heb ei diogelu?</string>
   <!--Page title for My Story options-->
   <string name="MyStorySettingsFragment__my_story">Fy Stori</string>
   <!--Section heading for story visibility-->
-  <string name="MyStorySettingsFragment__who_can_see_this_story">Pwy all weld y stori hon</string>
   <!--Clickable option for selecting people to hide your story from-->
   <string name="MyStorySettingsFragment__hide_story_from">Cuddio\'r stori rhag</string>
   <!--Privacy setting title for sending stories to all your signal connections-->
@@ -4408,20 +4431,9 @@ Anfon neges heb ei diogelu?</string>
   <string name="ExpiredGiftSheetConfiguration__make_a_monthly_donation">Rhowch rodd yn fisol</string>
   <!--Expired gift sheet not now button-->
   <string name="ExpiredGiftSheetConfiguration__not_now">Nid nawr</string>
+  <!--My Story label designating that we will only share with the selected viewers.-->
   <!--Label under name for private stories-->
-  <plurals name="ContactSearchItems__private_story_d_viewers">
-    <item quantity="one">Stori Breifat · %1$d darllenydd</item>
-    <item quantity="two">Stori Breifat · %1$d darllenydd</item>
-    <item quantity="many">Stori Breifat · %1$d darllenydd</item>
-    <item quantity="other">Stori Breifat · %1$d darllenydd</item>
-  </plurals>
   <!--Label under name for group stories-->
-  <plurals name="ContactSearchItems__group_story_d_viewers">
-    <item quantity="one">Stori Grŵp · %1$d darllenydd</item>
-    <item quantity="two">Stori Grŵp · %1$d darllenydd</item>
-    <item quantity="many">Stori Grŵp · %1$d darllenydd</item>
-    <item quantity="other">Stori Grŵp · %1$d darllenydd</item>
-  </plurals>
   <!--Label under name for my story-->
   <!--Label under name for My Story when first sending to my story-->
   <!--Label for context menu item to open story settings-->
@@ -4521,5 +4533,28 @@ Anfon neges heb ei diogelu?</string>
   <!--Explanation of who can view a group story-->
   <!--Preference label for removing this group story-->
   <!--Generic title for overflow menus-->
+  <!--SMS Export Service-->
+  <!--Displayed in the notification while export is running-->
+  <!--ExportYourSmsMessagesFragment-->
+  <!--Title of the screen-->
+  <!--Button label to begin export-->
+  <string name="ExportYourSmsMessagesFragment__continue">Parhau</string>
+  <!--ExportingSmsMessagesFragment-->
+  <!--Title of the screen-->
+  <!--Progress indicator for export-->
+  <!--ChooseANewDefaultSmsAppFragment-->
+  <!--Title of the screen-->
+  <!--Button label to launch picker-->
+  <string name="ChooseANewDefaultSmsAppFragment__continue">Parhau</string>
+  <!--RemoveSmsMessagesDialogFragment-->
+  <!--Action button to keep messages-->
+  <string name="RemoveSmsMessagesDialogFragment__keep_messages">Cadw negeseuon</string>
+  <!--Action button to remove messages-->
+  <!--Title of dialog-->
+  <!--Message of dialog-->
+  <!--SetSignalAsDefaultSmsAppFragment-->
+  <!--Title of the screen-->
+  <!--Button label to start export-->
+  <string name="SetSignalAsDefaultSmsAppFragment__next">Nesaf</string>
   <!--EOF-->
 </resources>

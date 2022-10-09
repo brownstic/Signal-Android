@@ -151,7 +151,8 @@
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name=".DeviceProvisioningActivity"
-              android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
+              android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
+              android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
@@ -177,10 +178,10 @@
 
     <activity android:name=".sharing.v2.ShareActivity"
               android:theme="@style/Theme.Signal.DayNight.NoActionBar"
+              android:exported="true"
               android:excludeFromRecents="true"
               android:taskAffinity=""
               android:windowSoftInputMode="stateHidden"
-              android:exported="true"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
         <intent-filter>
             <action android:name="android.intent.action.SEND" />
@@ -208,13 +209,14 @@
     </activity>
 
     <activity android:name=".stickers.StickerPackPreviewActivity"
+              android:exported="true"
               android:theme="@style/Theme.Signal.DayNight.NoActionBar"
               android:launchMode="singleTask"
               android:noHistory="true"
               android:windowSoftInputMode="stateHidden"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
         <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.VIEW" android:exported="true" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="sgnl"
@@ -258,6 +260,7 @@
         </activity>
 
     <activity android:name=".deeplinks.DeepLinkEntryActivity"
+              android:exported="true"
               android:noHistory="true"
               android:theme="@style/Signal.Transparent">
 
@@ -389,10 +392,12 @@
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name=".verify.VerifyIdentityActivity"
+              android:exported="false"
               android:theme="@style/Signal.DayNight.NoActionBar"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name=".components.settings.app.AppSettingsActivity"
+              android:exported="true"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
               android:theme="@style/Signal.DayNight.NoActionBar"
               android:windowSoftInputMode="adjustResize">
@@ -520,10 +525,11 @@
               android:finishOnTaskLaunch="true" />
 
     <activity android:name=".PlayServicesProblemActivity"
+              android:exported="false"
               android:theme="@style/TextSecure.DialogActivity"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
-    <activity android:name=".SmsSendtoActivity">
+    <activity android:name=".SmsSendtoActivity" android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.SENDTO" />
             <action android:name="android.intent.action.VIEW" />
@@ -542,6 +548,7 @@
     </activity>
 
     <activity android:name="org.thoughtcrime.securesms.webrtc.VoiceCallShare"
+              android:exported="true"
               android:excludeFromRecents="true"
               android:permission="android.permission.CALL_PHONE"
               android:theme="@style/NoAnimation.Theme.BlackScreen"
@@ -557,7 +564,7 @@
     </activity>
 
     <activity android:name=".mediasend.AvatarSelectionActivity"
-              android:theme="@style/TextSecure.FullScreenMedia"
+              android:theme="@style/TextSecure.DarkNoActionBar"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name=".blocked.BlockedUsersActivity"
@@ -571,6 +578,10 @@
 
     <activity android:name=".profiles.edit.EditProfileActivity"
               android:theme="@style/TextSecure.LightRegistrationTheme"
+              android:windowSoftInputMode="stateVisible|adjustResize" />
+
+    <activity android:name=".profiles.username.AddAUsernameActivity"
+              android:theme="@style/Signal.DayNight.NoActionBar"
               android:windowSoftInputMode="stateVisible|adjustResize" />
 
     <activity android:name=".profiles.manage.ManageProfileActivity"
@@ -662,7 +673,7 @@
 
     <activity android:name=".wallpaper.crop.WallpaperImageSelectionActivity"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-              android:theme="@style/TextSecure.FullScreenMedia" />
+              android:theme="@style/TextSecure.DarkNoActionBar" />
 
     <activity android:name=".wallpaper.crop.WallpaperCropActivity"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
@@ -673,6 +684,16 @@
               android:theme="@style/Theme.Signal.DayNight.NoActionBar"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
+    <activity android:name=".exporter.flow.SmsExportActivity"
+              android:theme="@style/Theme.Signal.DayNight.NoActionBar"
+              android:screenOrientation="portrait"
+              android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
+
+    <activity android:name=".mediapreview.MediaPreviewV2Activity"
+              android:exported="false"
+              android:theme="@style/Theme.Signal.DayNight.NoActionBar" />
+
+    <service android:enabled="true" android:name=".exporter.SignalSmsExportService" android:foregroundServiceType="dataSync" />
     <service android:enabled="true" android:name=".service.webrtc.WebRtcCallService" android:foregroundServiceType="camera|microphone"/>
     <service android:enabled="true" android:name=".service.ApplicationMigrationService"/>
     <service android:enabled="true" android:exported="false" android:name=".service.KeyCachingService"/>
@@ -685,13 +706,13 @@
         </intent-filter>
     </service>
 
-    <service android:name=".components.voice.VoiceNotePlaybackService">
+    <service android:name=".components.voice.VoiceNotePlaybackService" android:exported="true">
         <intent-filter>
             <action android:name="android.media.browse.MediaBrowserService" />
         </intent-filter>
     </service>
 
-    <receiver android:name="androidx.media.session.MediaButtonReceiver" >
+    <receiver android:name="androidx.media.session.MediaButtonReceiver" android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.MEDIA_BUTTON" />
         </intent-filter>
@@ -731,7 +752,7 @@
 
     <service android:name=".gcm.FcmFetchForegroundService" />
 
-    <service android:name=".gcm.FcmReceiveService">
+    <service android:name=".gcm.FcmReceiveService" android:exported="true">
         <intent-filter>
             <action android:name="com.google.firebase.MESSAGING_EVENT" />
         </intent-filter>
@@ -822,51 +843,51 @@
 
     </provider>
 
-    <receiver android:name=".service.BootReceiver">
+    <receiver android:name=".service.BootReceiver" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
             <action android:name="org.thoughtcrime.securesms.RESTART"/>
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".service.DirectoryRefreshListener">
+    <receiver android:name=".service.DirectoryRefreshListener" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".service.RotateSignedPreKeyListener">
+    <receiver android:name=".service.RotateSignedPreKeyListener" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".service.RotateSenderCertificateListener">
+    <receiver android:name=".service.RotateSenderCertificateListener" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".messageprocessingalarm.MessageProcessReceiver">
+    <receiver android:name=".messageprocessingalarm.MessageProcessReceiver" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
             <action android:name="org.thoughtcrime.securesms.action.PROCESS_MESSAGES" />
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".service.LocalBackupListener">
+    <receiver android:name=".service.LocalBackupListener" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".service.PersistentConnectionBootListener">
+    <receiver android:name=".service.PersistentConnectionBootListener" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
         </intent-filter>
     </receiver>
 
-    <receiver android:name=".notifications.LocaleChangedReceiver">
+    <receiver android:name=".notifications.LocaleChangedReceiver" android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.LOCALE_CHANGED"/>
         </intent-filter>
@@ -874,7 +895,7 @@
 
     <receiver android:name=".notifications.MessageNotifier$ReminderReceiver"/>
 
-    <receiver android:name=".notifications.DeleteNotificationReceiver">
+    <receiver android:name=".notifications.DeleteNotificationReceiver" android:exported="false">
         <intent-filter>
             <action android:name="org.thoughtcrime.securesms.DELETE_NOTIFICATION"/>
         </intent-filter>
@@ -902,16 +923,19 @@
 
     <service
         android:name=".jobmanager.KeepAliveService"
-        android:enabled="@bool/enable_alarm_manager" />
+        android:enabled="@bool/enable_alarm_manager"
+        android:exported="false"/>
 
     <receiver
         android:name=".jobmanager.AlarmManagerScheduler$RetryReceiver"
-        android:enabled="@bool/enable_alarm_manager" />
+        android:enabled="@bool/enable_alarm_manager"
+        android:exported="false"/>
 
     <!-- Probably don't need this one -->
     <receiver
         android:name=".jobmanager.BootReceiver"
-        android:enabled="true">
+        android:enabled="true"
+        android:exported="false">
         <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>

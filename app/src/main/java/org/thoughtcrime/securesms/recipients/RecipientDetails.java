@@ -69,12 +69,7 @@ public class RecipientDetails {
   final String                       notificationChannel;
   final UnidentifiedAccessMode       unidentifiedAccessMode;
   final boolean                      forceSmsSelection;
-  final Recipient.Capability         groupsV1MigrationCapability;
-  final Recipient.Capability         senderKeyCapability;
-  final Recipient.Capability         announcementGroupCapability;
-  final Recipient.Capability         changeNumberCapability;
-  final Recipient.Capability         storiesCapability;
-  final Recipient.Capability         giftBadgesCapability;
+  final RecipientRecord.Capabilities capabilities;
   final InsightsBannerTier           insightsBannerTier;
   final byte[]                       storageId;
   final MentionSetting               mentionSetting;
@@ -88,6 +83,7 @@ public class RecipientDetails {
   final boolean                      hasGroupsInCommon;
   final List<Badge>                  badges;
   final boolean                      isReleaseChannel;
+  final boolean                      needsPniSignature;
 
   public RecipientDetails(@Nullable String groupName,
                           @Nullable String systemContactName,
@@ -132,12 +128,7 @@ public class RecipientDetails {
     this.notificationChannel          = record.getNotificationChannel();
     this.unidentifiedAccessMode       = record.getUnidentifiedAccessMode();
     this.forceSmsSelection            = record.isForceSmsSelection();
-    this.groupsV1MigrationCapability  = record.getGroupsV1MigrationCapability();
-    this.senderKeyCapability          = record.getSenderKeyCapability();
-    this.announcementGroupCapability  = record.getAnnouncementGroupCapability();
-    this.changeNumberCapability       = record.getChangeNumberCapability();
-    this.storiesCapability            = record.getStoriesCapability();
-    this.giftBadgesCapability         = record.getGiftBadgesCapability();
+    this.capabilities                 = record.getCapabilities();
     this.insightsBannerTier           = record.getInsightsBannerTier();
     this.storageId                    = record.getStorageId();
     this.mentionSetting               = record.getMentionSetting();
@@ -153,6 +144,7 @@ public class RecipientDetails {
     this.hasGroupsInCommon            = record.hasGroupsInCommon();
     this.badges                       = record.getBadges();
     this.isReleaseChannel             = isReleaseChannel;
+    this.needsPniSignature            = record.needsPniSignature();
   }
 
   private RecipientDetails() {
@@ -191,12 +183,7 @@ public class RecipientDetails {
     this.unidentifiedAccessMode       = UnidentifiedAccessMode.UNKNOWN;
     this.forceSmsSelection            = false;
     this.groupName                    = null;
-    this.groupsV1MigrationCapability  = Recipient.Capability.UNKNOWN;
-    this.senderKeyCapability          = Recipient.Capability.UNKNOWN;
-    this.announcementGroupCapability  = Recipient.Capability.UNKNOWN;
-    this.changeNumberCapability       = Recipient.Capability.UNKNOWN;
-    this.storiesCapability            = Recipient.Capability.UNKNOWN;
-    this.giftBadgesCapability         = Recipient.Capability.UNKNOWN;
+    this.capabilities                 = RecipientRecord.Capabilities.UNKNOWN;
     this.storageId                    = null;
     this.mentionSetting               = MentionSetting.ALWAYS_NOTIFY;
     this.wallpaper                    = null;
@@ -210,6 +197,7 @@ public class RecipientDetails {
     this.hasGroupsInCommon            = false;
     this.badges                       = Collections.emptyList();
     this.isReleaseChannel             = false;
+    this.needsPniSignature            = false;
   }
 
   public static @NonNull RecipientDetails forIndividual(@NonNull Context context, @NonNull RecipientRecord settings) {

@@ -4,12 +4,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
+import com.google.android.material.button.MaterialButton
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.badges.BadgeImageView
 import org.thoughtcrime.securesms.components.AvatarImageView
 import org.thoughtcrime.securesms.components.FromTextView
 import org.thoughtcrime.securesms.components.menu.ActionItem
 import org.thoughtcrime.securesms.components.menu.SignalContextMenu
+import org.thoughtcrime.securesms.contacts.LetterHeaderDecoration
 import org.thoughtcrime.securesms.database.model.DistributionListPrivacyMode
 import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
@@ -72,9 +74,10 @@ object ContactSearchItems {
       contactSearchData.filterNotNull().map {
         when (it) {
           is ContactSearchData.Story -> StoryModel(it, selection.contains(it.contactSearchKey), SignalStore.storyValues().userHasBeenNotifiedAboutStories)
-          is ContactSearchData.KnownRecipient -> RecipientModel(it, selection.contains(it.contactSearchKey))
+          is ContactSearchData.KnownRecipient -> RecipientModel(it, selection.contains(it.contactSearchKey), it.shortSummary)
           is ContactSearchData.Expand -> ExpandModel(it)
           is ContactSearchData.Header -> HeaderModel(it)
+          is ContactSearchData.TestRow -> error("This row exists for testing only.")
         }
       }
     )
@@ -195,8 +198,8 @@ object ContactSearchItems {
 
     private fun presentPrivacyMode(privacyMode: DistributionListPrivacyMode): String {
       return when (privacyMode) {
-        DistributionListPrivacyMode.ONLY_WITH -> context.getString(R.string.ChooseInitialMyStoryMembershipFragment__only_share_with)
-        DistributionListPrivacyMode.ALL_EXCEPT -> context.getString(R.string.ChooseInitialMyStoryMembershipFragment__all_signal_connections_except)
+        DistributionListPrivacyMode.ONLY_WITH -> context.getString(R.string.ContactSearchItems__only_share_with)
+        DistributionListPrivacyMode.ALL_EXCEPT -> context.getString(R.string.ChooseInitialMyStoryMembershipFragment__all_except)
         DistributionListPrivacyMode.ALL -> context.getString(R.string.ChooseInitialMyStoryMembershipFragment__all_signal_connections)
       }
     }
@@ -205,7 +208,7 @@ object ContactSearchItems {
   /**
    * Recipient model
    */
-  private class RecipientModel(val knownRecipient: ContactSearchData.KnownRecipient, val isSelected: Boolean) : MappingModel<RecipientModel> {
+  private class RecipientModel(val knownRecipient: ContactSearchData.KnownRecipient, val isSelected: Boolean, val shortSummary: Boolean) : MappingModel<RecipientModel> {
 
     override fun areItemsTheSame(newItem: RecipientModel): Boolean {
       return newItem.knownRecipient == knownRecipient
@@ -224,10 +227,29 @@ object ContactSearchItems {
     }
   }
 
-  private class KnownRecipientViewHolder(itemView: View, displayCheckBox: Boolean, onClick: RecipientClickListener) : BaseRecipientViewHolder<RecipientModel, ContactSearchData.KnownRecipient>(itemView, displayCheckBox, onClick) {
+  private class KnownRecipientViewHolder(itemView: View, displayCheckBox: Boolean, onClick: RecipientClickListener) : BaseRecipientViewHolder<RecipientModel, ContactSearchData.KnownRecipient>(itemView, displayCheckBox, onClick), LetterHeaderDecoration.LetterHeaderItem {
+
+    private var headerLetter: String? = null
+
     override fun isSelected(model: RecipientModel): Boolean = model.isSelected
     override fun getData(model: RecipientModel): ContactSearchData.KnownRecipient = model.knownRecipient
     override fun getRecipient(model: RecipientModel): Recipient = model.knownRecipient.recipient
+    override fun bindNumberField(model: RecipientModel) {
+      val recipient = getRecipient(model)
+
+      if (model.shortSummary && recipient.isGroup) {
+        val count = recipient.participantIds.size
+        number.text = context.resources.getQuantityString(R.plurals.ContactSearchItems__group_d_members, count, count)
+      } else {
+        super.bindNumberField(model)
+      }
+
+      headerLetter = model.knownRecipient.headerLetter
+    }
+
+    override fun getHeaderLetter(): String? {
+      return headerLetter
+    }
   }
 
   /**
@@ -322,7 +344,7 @@ object ContactSearchItems {
   private class HeaderViewHolder(itemView: View) : MappingViewHolder<HeaderModel>(itemView) {
 
     private val headerTextView: TextView = itemView.findViewById(R.id.section_header)
-    private val headerActionView: TextView = itemView.findViewById(R.id.section_header_action)
+    private val headerActionView: MaterialButton = itemView.findViewById(R.id.section_header_action)
 
     override fun bind(model: HeaderModel) {
       headerTextView.setText(
@@ -336,7 +358,7 @@ object ContactSearchItems {
 
       if (model.header.action != null) {
         headerActionView.visible = true
-        headerActionView.setCompoundDrawablesRelativeWithIntrinsicBounds(model.header.action.icon, 0, 0, 0)
+        headerActionView.setIconResource(model.header.action.icon)
         headerActionView.setText(model.header.action.label)
         headerActionView.setOnClickListener { model.header.action.action.run() }
       } else {

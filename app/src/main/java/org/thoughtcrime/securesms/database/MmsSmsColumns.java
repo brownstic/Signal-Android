@@ -29,6 +29,8 @@ public interface MmsSmsColumns {
   public static final String REMOTE_DELETED           = "remote_deleted";
   public static final String SERVER_GUID              = "server_guid";
   public static final String RECEIPT_TIMESTAMP        = "receipt_timestamp";
+  public static final String EXPORT_STATE             = "export_state";
+  public static final String EXPORTED                 = "exported";
 
   /**
    * For storage efficiency, all types are stored within a single 64-bit integer column in the
@@ -79,6 +81,7 @@ public interface MmsSmsColumns {
     protected static final long BAD_DECRYPT_TYPE                   = 13;
     protected static final long CHANGE_NUMBER_TYPE                 = 14;
     protected static final long BOOST_REQUEST_TYPE                 = 15;
+    protected static final long THREAD_MERGE_TYPE                  = 16;
 
     protected static final long BASE_INBOX_TYPE                    = 20;
     protected static final long BASE_OUTBOX_TYPE                   = 21;
@@ -218,6 +221,10 @@ public interface MmsSmsColumns {
 
     public static boolean isBadDecryptType(long type) {
       return (type & BASE_TYPE_MASK) == BAD_DECRYPT_TYPE;
+    }
+
+    public static boolean isThreadMergeType(long type) {
+      return (type & BASE_TYPE_MASK) == THREAD_MERGE_TYPE;
     }
 
     public static boolean isSecureType(long type) {
