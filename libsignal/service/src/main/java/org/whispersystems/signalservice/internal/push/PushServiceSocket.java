@@ -1843,8 +1843,8 @@ public class PushServiceSocket {
 
         throw new ProofRequiredException(proofRequiredResponse, retryAfter);
 
-      case 499:
-        throw new DeprecatedVersionException();
+      /*case 499:
+        throw new DeprecatedVersionException();*/
 
       case 508:
         throw new ServerRejectedException();
@@ -2111,8 +2111,8 @@ public class PushServiceSocket {
           }
         case 429:
           throw new RateLimitException(response.code(), "Rate limit exceeded: " + response.code());
-        case 499:
-          throw new DeprecatedVersionException();
+        /*case 499:
+          throw new DeprecatedVersionException();*/
       }
 
       throw new NonSuccessfulResponseCodeException(response.code(), "Response: " + response);
